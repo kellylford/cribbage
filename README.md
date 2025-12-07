@@ -1,38 +1,52 @@
 # Accessible Cribbage
 
-A fully functional Cribbage game written in Python with wxPython, designed for accessibility.
+A fully accessible web-based Cribbage game built with HTML, CSS, and JavaScript.
+
+## Play Online
+
+Simply open `index.html` in any modern web browser to play!
 
 ## Features
 
-- **Accessibility First**: Designed for screen readers and keyboard navigation.
+- **Fully Accessible**: Designed with WCAG accessibility standards
+- **Screen Reader Support**: Complete ARIA labels and live announcements
 - **Keyboard Navigation**:
-  - **Tab**: Move between Player Hand, Opponent Hand, and Played Cards list.
-  - **Left/Right Arrows**: Navigate cards within a hand or list.
-  - **Enter/Space**: Select/Play a card.
-- **Automatic Announcements**: Game actions, played cards, scores, and counts are spoken aloud.
-- **Automatic Pegging**: Scoring is handled automatically.
-
-## Requirements
-
-- Python 3
-- `wxPython`
-- `pyttsx3`
-
-## How to Run
-
-1. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-2. Run the game:
-   ```bash
-   python gui.py
-   ```
+  - **Tab**: Navigate between game controls and card areas
+  - **Arrow Keys**: Navigate cards in your hand and game log messages
+  - **Space/Enter**: Select cards for discard or play
+- **Visual Design**: Beautiful card graphics with proper color contrast
+- **Responsive**: Works on desktop, tablet, and mobile devices
+- **No Installation Required**: Pure HTML/CSS/JavaScript - works offline
 
 ## How to Play
 
-1. **Deal**: The game starts with a deal.
-2. **Discard**: Select 2 cards from your hand to discard to the crib. Navigate with Arrows, press Enter to select.
-3. **Play (Pegging)**: Play cards alternately with the computer. Try to make 15, 31, pairs, or runs.
-4. **Show**: Hands are scored automatically.
-5. **Win**: First to 121 points wins.
+1. Open `index.html` in your browser
+2. Click "Cut for Deal" to start
+3. **Discard Phase**: Select 2 cards to discard to the crib
+4. **Play Phase**: Play cards alternately with the computer
+5. **Scoring**: Hands are counted automatically
+6. First to 121 points wins!
+
+For complete rules, click "How to Play Cribbage" at the top of the game.
+
+## Files
+
+- `index.html` - Main game page
+- `game.js` - Complete game logic and UI
+- `styles.css` - Responsive styling
+- `rules.html` - Comprehensive cribbage rules
+
+## Other Versions
+
+- **wxPython** branch: Python desktop version with wxPython GUI
+- **WPF** branch: C# .NET desktop version (has rendering issues)
+
+## Accessibility Features
+
+- Semantic HTML with proper table structure for scores
+- ARIA labels and roles throughout
+- Live regions for screen reader announcements
+- Keyboard-navigable game log with arrow key support
+- Selected card state announced programmatically
+- High contrast colors meeting WCAG standards
+- Focus indicators on all interactive elements
