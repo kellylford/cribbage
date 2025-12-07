@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cribbage Game</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="game-container">
+        <div style="text-align: center; margin-bottom: 10px;">
+            <a href="rules.html" style="color: #1a5490; text-decoration: underline; font-weight: bold; font-size: 16px;">📖 How to Play Cribbage</a>
+        </div>
+        
+        <!-- Score Display -->
+        <table class="score-bar" role="table" aria-label="Game scores">
+            <thead>
+                <tr>
+                    <th scope="col" class="score-section player">
+                        <span class="label">PLAYER</span>
+                    </th>
+                    <th scope="col" class="score-section count">
+                        <span class="label">COUNT</span>
+                    </th>
+                    <th scope="col" class="score-section computer">
+                        <span class="label">COMPUTER</span>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="score-section player">
+                        <span class="score" id="playerScore">0</span>
+                    </td>
+                    <td class="score-section count">
+                        <span class="score" id="currentCount">0</span>
+                    </td>
+                    <td class="score-section computer">
+                        <span class="score" id="computerScore">0</span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Cribbage Board -->
+        <div class="cribbage-board">
+            <div class="board-row player-row">
+                <span class="board-label">PLAYER</span>
+                <div class="peg-track" id="playerTrack"></div>
+            </div>
+            <div class="board-row computer-row">
+                <span class="board-label">COMPUTER</span>
+                <div class="peg-track" id="computerTrack"></div>
+            </div>
+        </div>
+
+        <!-- Game Status -->
+        <div class="game-status">
+            <h3>Game Status</h3>
+            <ul class="status-messages" id="statusMessages" tabindex="0" aria-label="Game log"></ul>
+        </div>
+
+        <!-- Computer Hand -->
+        <div class="hand-section">
+            <h3>Computer Hand</h3>
+            <div class="card-container" id="computerHand" role="group" aria-label="Computer hand"></div>
+        </div>
+
+        <!-- Crib -->
+        <div class="hand-section">
+            <h3 id="cribHeading">The Crib</h3>
+            <div class="card-container" id="cribCards" role="group" aria-label="The crib"></div>
+        </div>
+
+        <!-- Played Cards -->
+        <div class="hand-section">
+            <h3>Played Cards</h3>
+            <div class="card-container" id="playedCards" role="group" aria-label="Played cards"></div>
+        </div>
+
+        <!-- Player Hand -->
+        <div class="hand-section">
+            <h3>Your Hand</h3>
+            <div class="card-container" id="playerHand" role="group" aria-label="Your hand" tabindex="0"></div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <button id="cutButton" class="game-button">Cut for Deal</button>
+            <button id="discardButton" class="game-button" disabled>Discard (0/2)</button>
+            <button id="goButton" class="game-button" disabled>Go</button>
+            <button id="continueButton" class="game-button" disabled>Continue</button>
+        </div>
+    </div>
+
+    <!-- Hidden live region for screen reader announcements -->
+    <div id="liveAnnouncer" class="sr-only" role="status" aria-live="assertive" aria-atomic="true"></div>
+
+    <script src="game.js"></script>
+</body>
+</html>
