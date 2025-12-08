@@ -376,6 +376,8 @@ class CribbageGame {
                 // Reset count
                 this.currentCount = 0;
                 this.playedPile = [];
+                this.state = 'PAUSE_GO';
+                this.addMessage('Count reset. Click Continue to resume play.');
                 
                 if (this.checkPlayComplete()) {
                     this.endPlay();
@@ -412,6 +414,8 @@ class CribbageGame {
             
             this.currentCount = 0;
             this.playedPile = [];
+            this.state = 'PAUSE_GO';
+            this.addMessage('Count reset. Click Continue to resume play.');
             
             // After a go, the player who said go first gets to lead next
             // That's the opponent of the player who got the go point
@@ -785,7 +789,7 @@ class GameUI {
         if (this.game.state === 'PAUSE_BEFORE_COUNT') {
             this.game.countHands();
             this.updateUI();
-        } else if (this.game.state === 'PAUSE_31') {
+        } else if (this.game.state === 'PAUSE_31' || this.game.state === 'PAUSE_GO') {
             this.game.state = 'PLAY';
             this.updateUI();
             if (this.game.currentTurn === this.game.computer) {
@@ -858,7 +862,7 @@ class GameUI {
         this.elements.discardButton.disabled = this.game.state !== 'DISCARD' || this.game.selectedForDiscard.size !== 2;
         this.elements.discardButton.textContent = `Discard (${this.game.selectedForDiscard.size}/2)`;
         this.elements.goButton.disabled = this.game.state !== 'PLAY' || !this.game.canPlay(this.game.player);
-        this.elements.continueButton.disabled = this.game.state !== 'ROUND_OVER' && this.game.state !== 'PAUSE_BEFORE_COUNT' && this.game.state !== 'PAUSE_31';
+        this.elements.continueButton.disabled = this.game.state !== 'ROUND_OVER' && this.game.state !== 'PAUSE_BEFORE_COUNT' && this.game.state !== 'PAUSE_31' && this.game.state !== 'PAUSE_GO';
     }
 
     updatePegPosition(track, score) {
