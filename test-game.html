@@ -287,8 +287,8 @@
             async runSingleGame(verbose = true) {
                 const game = new CribbageGame();
                 const errors = [];
-                let turnCount = 0;
-                const maxTurns = 200; // Safety limit
+                let loopCount = 0;
+                const maxLoops = 200; // Safety limit to prevent infinite loops
                 const stateHistory = []; // Track state transitions
 
                 // Capture game messages
@@ -303,14 +303,15 @@
                 let previousScores = { player: 0, computer: 0 };
                 let roundsPlayed = 0;
                 let maxCardsInHand = { player: 0, computer: 0 };
+                let totalPlays = 0; // Count actual card plays
 
                 try {
                     // Cut for deal
                     game.cutForDeal();
                     
                     // Play until game over
-                    while (game.state !== 'GAME_OVER' && turnCount < maxTurns) {
-                        turnCount++;
+                    while (game.state !== 'GAME_OVER' && loopCount < maxLoops) {
+                        loopCount++;
 
                         // Track state transitions
                         if (game.state !== previousState) {
@@ -340,10 +341,12 @@
                             const played = this.autoPlay(game);
                             if (!played) {
                                 // Check for infinite loop
-                                if (turnCount > maxTurns - 10) {
+                                if (loopCount > maxLoops - 10) {
                                     errors.push('Possible infinite loop in play phase');
                                     break;
                                 }
+                            } else {
+                                totalPlays++;
                             }
 
                             // Update previous scores
@@ -362,8 +365,8 @@
                         }
                     }
 
-                    if (turnCount >= maxTurns) {
-                        errors.push('Game exceeded maximum turn limit');
+                    if (loopCount >= maxLoops) {
+                        errors.push('Game exceeded maximum loop limit');
                     }
 
                     // ===== POST-GAME VALIDATION =====
@@ -381,10 +384,24 @@
                     }
 
                     // Validate state transitions make sense
-                    const expectedFlow = ['CUT_FOR_DEAL', 'DISCARD', 'PLAY'];
-                    const hasExpectedStart = stateHistory.slice(0, 3).every((state, i) => state === expectedFlow[i]);
-                    if (!hasExpectedStart) {
-                        errors.push(`Unexpected state flow: ${stateHistory.slice(0, 5).join(' -> ')}`);
+                    // Normal flow is: DISCARD -> PLAY -> ROUND_OVER -> DISCARD -> PLAY... or GAME_OVER
+                    // (CUT_FOR_DEAL happens before tracking starts)
+                    const validTransitions = {
+                        'DISCARD': ['PLAY'],
+                        'PLAY': ['ROUND_OVER', 'GAME_OVER'],
+                        'ROUND_OVER': ['DISCARD', 'GAME_OVER'],
+                        'CUT_FOR_DEAL': ['DISCARD', 'CUT_FOR_DEAL']  // Can retry on tie
+                    };
+                    
+                    for (let i = 0; i < stateHistory.length - 1; i++) {
+                        const current = stateHistory[i];
+                        const next = stateHistory[i + 1];
+                        const allowedNext = validTransitions[current];
+                        
+                        if (allowedNext && !allowedNext.includes(next)) {
+                            errors.push(`Invalid state transition: ${current} -> ${next}`);
+                            break;
+                        }
                     }
 
                     // Validate max hand size was reasonable
@@ -412,11 +429,14 @@
                         this.log(`  State: ${game.state}`, 'warning');
                         this.log(`  Scores: Player ${game.player.score}, Computer ${game.computer.score}`, 'warning');
                         this.log(`  Rounds played: ${roundsPlayed}`, 'warning');
-                        this.log(`  Turn count: ${turnCount}`, 'warning');
+                        this.log(`  Cards played: ${totalPlays}`, 'warning');
+                        this.log(`  Avg cards/round: ${roundsPlayed > 0 ? (totalPlays / roundsPlayed).toFixed(1) : 'N/A'}`, 'warning');
                         this.log(`  State history: ${stateHistory.slice(0, 10).join(' -> ')}`, 'warning');
                     } else if (verbose) {
                         this.log(`✓ Game completed successfully!`, 'success');
                         this.log(`  Rounds played: ${roundsPlayed}`, 'success');
+                        this.log(`  Cards played: ${totalPlays}`, 'success');
+                        this.log(`  Avg cards/round: ${(totalPlays / roundsPlayed).toFixed(1)}`, 'success');
                     }
 
                     this.log(`Final: Player ${game.player.score}, Computer ${game.computer.score}`, 'success');
