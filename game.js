@@ -224,6 +224,10 @@ class CribbageGame {
         if (this.cutCard.rank === 'J') {
             this.dealer.score += 2;
             this.addMessage(`${this.dealer.name} scores 2 for his heels!`);
+            // Check for immediate win (rare but possible)
+            if (this.checkForWinner()) {
+                return;
+            }
         }
 
         // Start play phase
@@ -245,6 +249,10 @@ class CribbageGame {
         const points = this.scorePlay(card, player);
         if (points > 0) {
             player.score += points;
+            // Check for immediate win
+            if (this.checkForWinner()) {
+                return true;
+            }
         }
 
         this.addMessage(`${player.name} plays ${card} (Count: ${this.currentCount})`);
@@ -350,6 +358,10 @@ class CribbageGame {
                 if (lastPlayer) {
                     lastPlayer.score += 1;
                     this.addMessage(`${lastPlayer.name} scores 1 for go.`);
+                    // Check for immediate win
+                    if (this.checkForWinner()) {
+                        return;
+                    }
                 }
                 
                 // Reset count
@@ -359,7 +371,9 @@ class CribbageGame {
                 if (this.checkPlayComplete()) {
                     this.endPlay();
                 } else {
-                    this.currentTurn = opponent;
+                    // After a go, the player who said go first gets to lead next
+                    // That's the opponent of the player who got the go point
+                    this.currentTurn = lastPlayer === this.player ? this.computer : this.player;
                 }
             } else {
                 this.currentTurn = opponent;
@@ -381,10 +395,20 @@ class CribbageGame {
             if (lastPlayer && this.currentCount > 0 && this.currentCount !== 31) {
                 lastPlayer.score += 1;
                 this.addMessage(`${lastPlayer.name} scores 1 for go.`);
+                // Check for immediate win
+                if (this.checkForWinner()) {
+                    return;
+                }
             }
             
             this.currentCount = 0;
             this.playedPile = [];
+            
+            // After a go, the player who said go first gets to lead next
+            // That's the opponent of the player who got the go point
+            if (lastPlayer) {
+                this.currentTurn = lastPlayer === this.player ? this.computer : this.player;
+            }
         }
     }
 
@@ -403,28 +427,47 @@ class CribbageGame {
         nonDealer.score += nonDealerScore;
         this.addMessage(`${nonDealer.name} scores ${nonDealerScore} from hand.`);
         
+        // Check for winner after non-dealer scores
+        if (this.checkForWinner()) {
+            return;
+        }
+        
         // Dealer scores
         const dealerScore = this.scoreHand(this.dealer.playedCards, this.cutCard, false);
         this.dealer.score += dealerScore;
         this.addMessage(`${this.dealer.name} scores ${dealerScore} from hand.`);
+        
+        // Check for winner after dealer scores hand
+        if (this.checkForWinner()) {
+            return;
+        }
         
         // Dealer scores crib
         const cribScore = this.scoreHand(this.crib, this.cutCard, true);
         this.dealer.score += cribScore;
         this.addMessage(`${this.dealer.name} scores ${cribScore} from crib.`);
         
-        // Check for winner
+        // Check for winner after crib
+        if (this.checkForWinner()) {
+            return;
+        }
+        
+        // Switch dealer
+        this.dealer = this.dealer === this.player ? this.computer : this.player;
+        this.state = 'ROUND_OVER';
+    }
+
+    checkForWinner() {
         if (this.player.score >= 121) {
             this.addMessage('You win!');
             this.state = 'GAME_OVER';
+            return true;
         } else if (this.computer.score >= 121) {
             this.addMessage('Computer wins!');
             this.state = 'GAME_OVER';
-        } else {
-            // Switch dealer
-            this.dealer = this.dealer === this.player ? this.computer : this.player;
-            this.state = 'ROUND_OVER';
+            return true;
         }
+        return false;
     }
 
     scoreHand(hand, cutCard, isCrib) {
