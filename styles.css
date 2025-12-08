@@ -148,6 +148,8 @@ body {
 
 .card-container {
     height: 150px;
+    min-height: 150px;
+    max-height: 150px;
     background: white;
     border: 2px solid #34495E;
     border-radius: 8px;
@@ -157,6 +159,7 @@ body {
     gap: 10px;
     justify-content: center;
     align-items: center;
+    overflow: hidden;
 }
 
 .card-container:focus-visible {
