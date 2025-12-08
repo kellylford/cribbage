@@ -979,10 +979,6 @@ class GameUI {
                 <div class="card-suit ${colorClass}">${card.suitSymbol}</div>
             </div>
             <div class="card-center ${colorClass}">${card.suitSymbol}</div>
-            <div style="text-align: right;">
-                <div class="card-rank ${colorClass}" style="transform: rotate(180deg);">${card.rank}</div>
-                <div class="card-suit ${colorClass}" style="transform: rotate(180deg);">${card.suitSymbol}</div>
-            </div>
         `;
         
         cardDiv.setAttribute('aria-label', card.name);
