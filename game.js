@@ -777,8 +777,9 @@ class GameUI {
         this.game.player.hand.forEach((card, index) => {
             const cardElement = this.createCardElement(card, true);
             
-            // Update aria-label to include position
-            cardElement.setAttribute('aria-label', `${card.name}, card ${index + 1} of ${this.game.player.hand.length}`);
+            // Use proper ARIA attributes for position in set
+            cardElement.setAttribute('aria-setsize', this.game.player.hand.length);
+            cardElement.setAttribute('aria-posinset', index + 1);
             
             // Handle selection state for discard phase
             if (this.game.state === 'DISCARD' && this.game.selectedForDiscard.has(index)) {
