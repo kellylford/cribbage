@@ -623,6 +623,8 @@ class GameUI {
         const cards = Array.from(this.elements.playerHand.children);
         cards.forEach((card, i) => {
             card.classList.toggle('focused', i === this.currentCardIndex);
+            // Update tabindex for roving tabindex pattern
+            card.setAttribute('tabindex', i === this.currentCardIndex ? '0' : '-1');
         });
         
         if (cards[this.currentCardIndex]) {
@@ -630,6 +632,8 @@ class GameUI {
             if (cardData) {
                 this.announce(`${cardData.name}, card ${this.currentCardIndex + 1} of ${cards.length}`);
             }
+            // Move actual keyboard focus to the current card
+            cards[this.currentCardIndex].focus();
         }
     }
 
@@ -801,6 +805,11 @@ class GameUI {
             
             if (index === this.currentCardIndex) {
                 cardElement.classList.add('focused');
+                // Make current card tabbable (roving tabindex pattern)
+                cardElement.setAttribute('tabindex', '0');
+            } else {
+                // Other cards not in tab order but can receive programmatic focus
+                cardElement.setAttribute('tabindex', '-1');
             }
             
             cardElement.addEventListener('click', () => this.handleCardAction(index));
