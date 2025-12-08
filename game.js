@@ -619,7 +619,8 @@ class GameUI {
         if (cards[this.currentCardIndex]) {
             const cardData = this.game.player.hand[this.currentCardIndex];
             if (cardData) {
-                this.announce(`${cardData.name}, card ${this.currentCardIndex + 1} of ${cards.length}`);
+                // Only announce position, card's aria-label already provides name
+                this.announce(`Card ${this.currentCardIndex + 1} of ${cards.length}`);
             }
             // Move actual keyboard focus to the current card
             cards[this.currentCardIndex].focus();
