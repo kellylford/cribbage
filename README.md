@@ -36,11 +36,6 @@ For complete rules, click "How to Play Cribbage" at the top of the game.
 - `styles.css` - Responsive styling
 - `rules.html` - Comprehensive cribbage rules
 
-## Other Versions
-
-- **wxPython** branch: Python desktop version with wxPython GUI
-- **WPF** branch: C# .NET desktop version (has rendering issues)
-
 ## Accessibility Features
 
 - Semantic HTML with proper table structure for scores
