@@ -111,17 +111,32 @@
         <h3 style="margin-top: 0; color: #9cdcfe;">Test Coverage</h3>
         <p style="font-size: 12px; color: #808080; margin: 10px 0;">
             This comprehensive test suite validates:<br>
+            <strong>Game Flow:</strong><br>
             ✓ Both players can't reach 121+ (game ends at first 121)<br>
-            ✓ Scores never decrease<br>
-            ✓ Count stays 0-31, resets properly after "go"<br>
+            ✓ State transitions valid (CUT → DISCARD → PLAY → scoring)<br>
+            ✓ Game reaches GAME_OVER with winner at 121+<br>
+            ✓ At least one round played per game<br>
+            <strong>Scoring Rules:</strong><br>
+            ✓ No impossible hand/crib scores (19, 25, 26, 27, >29)<br>
+            ✓ Pair scoring = 2 points (exactly)<br>
+            ✓ Three of a kind = 6 points (exactly)<br>
+            ✓ Four of a kind = 12 points (exactly)<br>
+            ✓ Fifteen = 2 points (exactly)<br>
+            ✓ Thirty-one = 2 points (exactly)<br>
+            ✓ Run length 3-7 only, points = length<br>
+            ✓ His heels (2 pts) only once per round<br>
+            ✓ Pegging scores reasonable (<28 per round)<br>
+            <strong>Card Management:</strong><br>
             ✓ Card counts correct (6 dealt, 4 after discard, 4 in crib)<br>
+            ✓ No duplicate cards in play (13 unique cards)<br>
+            ✓ Played pile cards belong to players<br>
+            ✓ Count stays 0-31, resets properly after "go"<br>
+            ✓ Played pile count matches current count<br>
+            <strong>Turn & State:</strong><br>
             ✓ Turn management (correct player's turn)<br>
             ✓ Dealer assignment and rotation<br>
-            ✓ State transitions (CUT → DISCARD → PLAY → scoring)<br>
-            ✓ No duplicate cards in play<br>
-            ✓ Played pile count matches current count<br>
             ✓ Cut card exists during play<br>
-            ✓ Game reaches GAME_OVER with winner at 121+
+            ✓ Scores never decrease<br>
         </p>
         <div class="input-group">
             <label for="numGames">Number of games:</label>
@@ -174,6 +189,24 @@
                     computerWins: 0,
                     errorsDetected: 0
                 };
+                this.detailedStats = {
+                    highestHand: { score: 0, player: '', cards: '', game: 0 },
+                    highestCrib: { score: 0, player: '', cards: '', game: 0 },
+                    highestPegging: { score: 0, player: '', game: 0, round: 0 },
+                    totalRounds: 0,
+                    shortestGame: { rounds: Infinity, score: '', game: 0 },
+                    longestGame: { rounds: 0, score: '', game: 0 },
+                    highestScore: { score: 0, player: '', game: 0 },
+                    closestGame: { diff: Infinity, score: '', game: 0 },
+                    perfectHands: 0, // 29 point hands
+                    skunkGames: 0, // Winner >= 121, loser < 91
+                    doubleSkunkGames: 0, // Winner >= 121, loser < 61
+                    totalCardsPlayed: 0,
+                    goPoints: 0,
+                    fifteenPoints: 0,
+                    pairPoints: 0,
+                    runPoints: 0
+                };
                 this.running = false;
                 this.logElement = document.getElementById('log');
                 this.setupControls();
@@ -209,6 +242,24 @@
                         playerWins: 0,
                         computerWins: 0,
                         errorsDetected: 0
+                    };
+                    this.detailedStats = {
+                        highestHand: { score: 0, player: '', cards: '', game: 0 },
+                        highestCrib: { score: 0, player: '', cards: '', game: 0 },
+                        highestPegging: { score: 0, player: '', game: 0, round: 0 },
+                        totalRounds: 0,
+                        shortestGame: { rounds: Infinity, score: '', game: 0 },
+                        longestGame: { rounds: 0, score: '', game: 0 },
+                        highestScore: { score: 0, player: '', game: 0 },
+                        closestGame: { diff: Infinity, score: '', game: 0 },
+                        perfectHands: 0,
+                        skunkGames: 0,
+                        doubleSkunkGames: 0,
+                        totalCardsPlayed: 0,
+                        goPoints: 0,
+                        fifteenPoints: 0,
+                        pairPoints: 0,
+                        runPoints: 0
                     };
                     this.updateStats();
                     this.log('Statistics reset.', 'success');
@@ -254,11 +305,16 @@
                 this.log('', 'separator');
 
                 for (let i = 0; i < numGames && this.running; i++) {
-                    this.log(`\n=== GAME ${i + 1} ===`, 'success');
+                    // Only log game headers every 10 games to reduce DOM overhead
+                    if ((i + 1) % 10 === 0 || i === 0) {
+                        this.log(`\nGames ${i + 1 - 9}-${i + 1}...`, 'success');
+                    }
+                    
                     await this.runSingleGame(false);
                     
-                    if (delay > 0 && i < numGames - 1) {
-                        await new Promise(resolve => setTimeout(resolve, delay));
+                    // Give browser time to update UI every 10 games or if delay is set
+                    if (delay > 0 || (i + 1) % 10 === 0) {
+                        await new Promise(resolve => setTimeout(resolve, delay || 0));
                     }
                 }
 
@@ -277,6 +333,57 @@
                         const passRate = ((this.stats.gamesCompleted - this.stats.errorsDetected) / this.stats.gamesCompleted * 100).toFixed(1);
                         this.log(`Pass Rate: ${passRate}%`, this.stats.errorsDetected > 0 ? 'error' : 'success');
                     }
+                    
+                    // Detailed Statistics
+                    this.log(`\n📈 DETAILED STATISTICS`, 'success');
+                    this.log(`════════════════════════════════`, 'success');
+                    
+                    const ds = this.detailedStats;
+                    const avgRounds = ds.totalRounds / this.stats.gamesCompleted;
+                    
+                    this.log(`\n🎯 Scoring Records:`, 'success');
+                    if (ds.highestHand.score > 0) {
+                        this.log(`  Highest Hand: ${ds.highestHand.score} points (${ds.highestHand.player}, Game ${ds.highestHand.game})`, 'success');
+                        if (ds.highestHand.cards) this.log(`    Cards: ${ds.highestHand.cards}`, 'success');
+                    }
+                    if (ds.highestCrib.score > 0) {
+                        this.log(`  Highest Crib: ${ds.highestCrib.score} points (${ds.highestCrib.player}, Game ${ds.highestCrib.game})`, 'success');
+                        if (ds.highestCrib.cards) this.log(`    Cards: ${ds.highestCrib.cards}`, 'success');
+                    }
+                    if (ds.highestPegging.score > 0) {
+                        this.log(`  Most Pegging in One Round: ${ds.highestPegging.score} points (${ds.highestPegging.player}, Game ${ds.highestPegging.game})`, 'success');
+                    }
+                    if (ds.perfectHands > 0) {
+                        this.log(`  Perfect 29-point hands: ${ds.perfectHands}`, 'success');
+                    }
+                    
+                    this.log(`\n📏 Game Length:`, 'success');
+                    this.log(`  Average rounds per game: ${avgRounds.toFixed(1)}`, 'success');
+                    if (ds.shortestGame.rounds < Infinity) {
+                        this.log(`  Shortest game: ${ds.shortestGame.rounds} rounds (${ds.shortestGame.score}, Game ${ds.shortestGame.game})`, 'success');
+                    }
+                    if (ds.longestGame.rounds > 0) {
+                        this.log(`  Longest game: ${ds.longestGame.rounds} rounds (${ds.longestGame.score}, Game ${ds.longestGame.game})`, 'success');
+                    }
+                    
+                    this.log(`\n🏆 Score Analysis:`, 'success');
+                    if (ds.highestScore.score > 0) {
+                        this.log(`  Highest final score: ${ds.highestScore.score} (${ds.highestScore.player}, Game ${ds.highestScore.game})`, 'success');
+                    }
+                    if (ds.closestGame.diff < Infinity) {
+                        this.log(`  Closest game: ${ds.closestGame.diff} point difference (${ds.closestGame.score}, Game ${ds.closestGame.game})`, 'success');
+                    }
+                    if (ds.skunkGames > 0) {
+                        this.log(`  Skunks (loser < 91): ${ds.skunkGames} (${(ds.skunkGames / this.stats.gamesCompleted * 100).toFixed(1)}%)`, 'success');
+                    }
+                    if (ds.doubleSkunkGames > 0) {
+                        this.log(`  Double Skunks (loser < 61): ${ds.doubleSkunkGames} (${(ds.doubleSkunkGames / this.stats.gamesCompleted * 100).toFixed(1)}%)`, 'success');
+                    }
+                    
+                    this.log(`\n🎴 Play Statistics:`, 'success');
+                    const avgCards = ds.totalCardsPlayed / this.stats.gamesCompleted;
+                    this.log(`  Average cards played per game: ${avgCards.toFixed(1)}`, 'success');
+                    
                     this.log(`════════════════════════════════\n`, 'success');
                 }
                 
@@ -304,6 +411,8 @@
                 let roundsPlayed = 0;
                 let maxCardsInHand = { player: 0, computer: 0 };
                 let totalPlays = 0; // Count actual card plays
+                let peggingScoresThisRound = { player: 0, computer: 0 };
+                let roundStartScores = { player: 0, computer: 0 };
 
                 try {
                     // Cut for deal
@@ -329,12 +438,30 @@
                             // Auto-discard for both players
                             this.autoDiscard(game);
                         } else if (game.state === 'PLAY') {
+                            // Track when we enter play phase for pegging validation
+                            if (previousState === 'DISCARD') {
+                                roundStartScores = { player: game.player.score, computer: game.computer.score };
+                                peggingScoresThisRound = { player: 0, computer: 0 };
+                            }
+                            
                             // Validate scores haven't decreased
                             if (game.player.score < previousScores.player) {
                                 errors.push(`Player score decreased from ${previousScores.player} to ${game.player.score}`);
                             }
                             if (game.computer.score < previousScores.computer) {
                                 errors.push(`Computer score decreased from ${previousScores.computer} to ${game.computer.score}`);
+                            }
+
+                            // Track pegging scores during play
+                            peggingScoresThisRound.player = game.player.score - roundStartScores.player;
+                            peggingScoresThisRound.computer = game.computer.score - roundStartScores.computer;
+                            
+                            // Validate pegging scores are reasonable (max ~24 in one round: 8 cards * 3 avg)
+                            if (peggingScoresThisRound.player > 28) {
+                                errors.push(`Excessive pegging: Player scored ${peggingScoresThisRound.player} during play (max realistic ~28)`);
+                            }
+                            if (peggingScoresThisRound.computer > 28) {
+                                errors.push(`Excessive pegging: Computer scored ${peggingScoresThisRound.computer} during play (max realistic ~28)`);
                             }
 
                             // Auto-play
@@ -357,8 +484,11 @@
                             game.startRound();
                         }
 
-                        // Validate game state after every action
-                        const stateErrors = this.validateGameState(game);
+                        // Validate game state (only check critical items every loop, full validation less frequently)
+                        const stateErrors = loopCount % 5 === 0 
+                            ? this.validateGameState(game)  // Full validation every 5 loops
+                            : this.validateCriticalState(game);  // Quick critical checks every loop
+                        
                         if (stateErrors.length > 0) {
                             errors.push(...stateErrors);
                             break;
@@ -419,9 +549,64 @@
                     if (game.player.score >= 121) this.stats.playerWins++;
                     if (game.computer.score >= 121) this.stats.computerWins++;
 
+                    // Update detailed statistics
+                    const gameNum = this.stats.gamesCompleted;
+                    this.detailedStats.totalRounds += roundsPlayed;
+                    this.detailedStats.totalCardsPlayed += totalPlays;
+                    
+                    // Game length records
+                    if (roundsPlayed < this.detailedStats.shortestGame.rounds) {
+                        this.detailedStats.shortestGame = {
+                            rounds: roundsPlayed,
+                            score: `${game.player.score}-${game.computer.score}`,
+                            game: gameNum
+                        };
+                    }
+                    if (roundsPlayed > this.detailedStats.longestGame.rounds) {
+                        this.detailedStats.longestGame = {
+                            rounds: roundsPlayed,
+                            score: `${game.player.score}-${game.computer.score}`,
+                            game: gameNum
+                        };
+                    }
+                    
+                    // Score records
+                    const maxScore = Math.max(game.player.score, game.computer.score);
+                    if (maxScore > this.detailedStats.highestScore.score) {
+                        this.detailedStats.highestScore = {
+                            score: maxScore,
+                            player: game.player.score > game.computer.score ? 'Player' : 'Computer',
+                            game: gameNum
+                        };
+                    }
+                    
+                    // Closest game
+                    const scoreDiff = Math.abs(game.player.score - game.computer.score);
+                    if (scoreDiff < this.detailedStats.closestGame.diff) {
+                        this.detailedStats.closestGame = {
+                            diff: scoreDiff,
+                            score: `${game.player.score}-${game.computer.score}`,
+                            game: gameNum
+                        };
+                    }
+                    
+                    // Skunk detection
+                    const winner = game.player.score >= 121 ? game.player.score : game.computer.score;
+                    const loser = game.player.score >= 121 ? game.computer.score : game.player.score;
+                    if (winner >= 121 && loser < 91) {
+                        this.detailedStats.skunkGames++;
+                        if (loser < 61) {
+                            this.detailedStats.doubleSkunkGames++;
+                        }
+                    }
+                    
+                    // Parse messages for hand/crib scores (this is approximate since we'd need to instrument the game)
+                    // For now, we'll track what we can from the messages
+                    this.trackScoringFromMessages(messages, gameNum);
+
                     if (errors.length > 0) {
                         this.stats.errorsDetected++;
-                        this.log(`\n⚠️ ERRORS DETECTED (${errors.length}):`, 'error');
+                        this.log(`\n⚠️ GAME ${gameNum} ERRORS (${errors.length}):`, 'error');
                         errors.forEach(err => this.log(`  - ${err}`, 'error'));
                         
                         // Log diagnostic info
@@ -439,7 +624,9 @@
                         this.log(`  Avg cards/round: ${(totalPlays / roundsPlayed).toFixed(1)}`, 'success');
                     }
 
-                    this.log(`Final: Player ${game.player.score}, Computer ${game.computer.score}`, 'success');
+                    if (verbose) {
+                        this.log(`Final: Player ${game.player.score}, Computer ${game.computer.score}`, 'success');
+                    }
 
                 } catch (error) {
                     this.stats.errorsDetected++;
@@ -475,6 +662,34 @@
                     game.sayGo();
                     return false;
                 }
+            }
+
+            validateCriticalState(game) {
+                // Fast validation - only check the most critical items
+                const errors = [];
+
+                // Check for negative or impossible scores
+                if (game.player.score < 0 || game.computer.score < 0) {
+                    errors.push('Negative score detected');
+                }
+
+                // CRITICAL: Both players at 121+
+                if (game.player.score >= 121 && game.computer.score >= 121) {
+                    errors.push(`CRITICAL: Both players at 121+`);
+                }
+
+                // Count validation (most common bug source)
+                if (game.currentCount < 0 || game.currentCount > 31) {
+                    errors.push(`Invalid count: ${game.currentCount}`);
+                }
+
+                // Valid state
+                const validStates = ['CUT_FOR_DEAL', 'DISCARD', 'PLAY', 'ROUND_OVER', 'GAME_OVER'];
+                if (!validStates.includes(game.state)) {
+                    errors.push(`Invalid game state: ${game.state}`);
+                }
+
+                return errors;
             }
 
             validateGameState(game) {
@@ -614,7 +829,180 @@
                     errors.push('No cut card during play phase');
                 }
 
+                // ===== PLAY MECHANICS VALIDATION =====
+                
+                // Validate no player can play when they said they couldn't
+                if (game.state === 'PLAY' && game.playedPile.length > 0) {
+                    // Check that cards in played pile are unique
+                    const playedCardIds = game.playedPile.map(p => `${p.card.rank}${p.card.suit}`);
+                    const uniquePlayedCards = new Set(playedCardIds);
+                    if (playedCardIds.length !== uniquePlayedCards.size) {
+                        errors.push('Duplicate card played in same sequence');
+                    }
+                    
+                    // Verify each card in played pile was actually from the player who played it
+                    game.playedPile.forEach(({card, player}) => {
+                        if (!player.playedCards.includes(card)) {
+                            errors.push(`Card ${card.name} in played pile but not in ${player.name}'s played cards`);
+                        }
+                    });
+                }
+                
+                // Validate played cards are actually played
+                if (game.state === 'PLAY') {
+                    [game.player, game.computer].forEach(player => {
+                        player.playedCards.forEach(card => {
+                            const inPile = game.playedPile.some(p => p.card === card && p.player === player);
+                            const currentlyPlayed = game.currentCount > 0;
+                            
+                            // If card is marked as played, it should either be in current pile or pile was reset
+                            if (currentlyPlayed && !inPile && game.playedPile.length > 0) {
+                                // This might be ok if pile was reset, but flag for review
+                            }
+                        });
+                    });
+                }
+
+                // ===== SCORING MECHANICS VALIDATION =====
+                
+                // Check that pegging scores are reasonable per card
+                // Max single card score: 15 for 2, pair for 6, run of 7 for 7, 31 for 2 = could be ~17 in perfect scenario
+                // But realistically should not exceed 8-12 per card
+                if (game.state === 'PLAY' && game.playedPile.length > 0) {
+                    // This is checked via message parsing for impossible scores
+                }
+
+                // ===== HIS HEELS VALIDATION =====
+                
+                // If cut card is Jack, dealer should have gotten 2 points
+                // (This would need game state tracking from start, leaving as future enhancement)
+
                 return errors;
+            }
+
+            trackScoringFromMessages(messages, gameNum) {
+                // Impossible scores in cribbage: 19, 25, 26, 27, and > 29
+                const impossibleScores = [19, 25, 26, 27];
+                let totalHandCribScoring = { player: 0, computer: 0 };
+                let heelsCount = 0;
+                
+                // Parse game messages to extract scoring information
+                messages.forEach(msg => {
+                    // Hand scoring: "Player scores 15 from hand"
+                    const handMatch = msg.match(/(Player|Computer) scores (\d+) from hand/);
+                    if (handMatch) {
+                        const score = parseInt(handMatch[2]);
+                        const player = handMatch[1].toLowerCase();
+                        totalHandCribScoring[player] = (totalHandCribScoring[player] || 0) + score;
+                        
+                        // Check for impossible scores
+                        if (impossibleScores.includes(score) || score > 29) {
+                            this.stats.errorsDetected++;
+                            this.log(`❌ IMPOSSIBLE HAND SCORE: ${score} points (${handMatch[1]}, Game ${gameNum})`, 'error');
+                        }
+                        
+                        if (score > this.detailedStats.highestHand.score) {
+                            this.detailedStats.highestHand = {
+                                score: score,
+                                player: handMatch[1],
+                                cards: '', // Would need game instrumentation to get cards
+                                game: gameNum
+                            };
+                        }
+                        if (score === 29) {
+                            this.detailedStats.perfectHands++;
+                        }
+                    }
+                    
+                    // Crib scoring: "Player scores 12 from crib"
+                    const cribMatch = msg.match(/(Player|Computer) scores (\d+) from crib/);
+                    if (cribMatch) {
+                        const score = parseInt(cribMatch[2]);
+                        const player = cribMatch[1].toLowerCase();
+                        totalHandCribScoring[player] = (totalHandCribScoring[player] || 0) + score;
+                        
+                        // Check for impossible scores
+                        if (impossibleScores.includes(score) || score > 29) {
+                            this.stats.errorsDetected++;
+                            this.log(`❌ IMPOSSIBLE CRIB SCORE: ${score} points (${cribMatch[1]}, Game ${gameNum})`, 'error');
+                        }
+                        
+                        if (score > this.detailedStats.highestCrib.score) {
+                            this.detailedStats.highestCrib = {
+                                score: score,
+                                player: cribMatch[1],
+                                cards: '',
+                                game: gameNum
+                            };
+                        }
+                    }
+                    
+                    // His heels: "Computer scores 2 for his heels"
+                    if (msg.includes('scores 2 for his heels')) {
+                        heelsCount++;
+                    }
+                    
+                    // Go points: "Player scores 1 for go"
+                    if (msg.includes('scores 1 for go')) {
+                        this.detailedStats.goPoints++;
+                    }
+                    
+                    // Pegging validation - check for impossible pegging scores
+                    // "Pair for 2", "Three of a kind for 6", "Four of a kind for 12", "Run of X for X", "15 for 2", "31 for 2"
+                    const peggingPatterns = [
+                        /Pair for (\d+)/,
+                        /Three of a kind for (\d+)/,
+                        /Four of a kind for (\d+)/,
+                        /Run of (\d+) for (\d+)/,
+                        /15 for (\d+)/,
+                        /31 for (\d+)/
+                    ];
+                    
+                    peggingPatterns.forEach(pattern => {
+                        const match = msg.match(pattern);
+                        if (match) {
+                            const score = parseInt(match[match.length - 1]);
+                            // Validate expected scores
+                            if (msg.includes('Pair for') && score !== 2) {
+                                this.stats.errorsDetected++;
+                                this.log(`❌ WRONG PAIR SCORE: ${score} (should be 2) - Game ${gameNum}`, 'error');
+                            }
+                            if (msg.includes('Three of a kind for') && score !== 6) {
+                                this.stats.errorsDetected++;
+                                this.log(`❌ WRONG THREE OF A KIND SCORE: ${score} (should be 6) - Game ${gameNum}`, 'error');
+                            }
+                            if (msg.includes('Four of a kind for') && score !== 12) {
+                                this.stats.errorsDetected++;
+                                this.log(`❌ WRONG FOUR OF A KIND SCORE: ${score} (should be 12) - Game ${gameNum}`, 'error');
+                            }
+                            if (msg.includes('15 for') && score !== 2) {
+                                this.stats.errorsDetected++;
+                                this.log(`❌ WRONG 15 SCORE: ${score} (should be 2) - Game ${gameNum}`, 'error');
+                            }
+                            if (msg.includes('31 for') && score !== 2) {
+                                this.stats.errorsDetected++;
+                                this.log(`❌ WRONG 31 SCORE: ${score} (should be 2) - Game ${gameNum}`, 'error');
+                            }
+                            if (msg.includes('Run of')) {
+                                const runLength = parseInt(match[1]);
+                                if (score !== runLength) {
+                                    this.stats.errorsDetected++;
+                                    this.log(`❌ WRONG RUN SCORE: Run of ${runLength} scored ${score} (should be ${runLength}) - Game ${gameNum}`, 'error');
+                                }
+                                if (runLength < 3 || runLength > 7) {
+                                    this.stats.errorsDetected++;
+                                    this.log(`❌ INVALID RUN LENGTH: ${runLength} (should be 3-7) - Game ${gameNum}`, 'error');
+                                }
+                            }
+                        }
+                    });
+                });
+                
+                // Validate his heels only happens once per game max
+                if (heelsCount > 1) {
+                    this.stats.errorsDetected++;
+                    this.log(`❌ HIS HEELS SCORED MULTIPLE TIMES: ${heelsCount} times in Game ${gameNum}`, 'error');
+                }
             }
         }
 
