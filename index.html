@@ -17,39 +17,15 @@
         </div>
         
         <main id="main-content">
-        <!-- Score Display -->
-        <table class="score-bar" aria-label="Game scores">
-            <thead>
-                <tr>
-                    <th scope="col" class="score-section player">
-                        <span class="label">PLAYER</span>
-                    </th>
-                    <th scope="col" class="score-section computer">
-                        <span class="label">COMPUTER</span>
-                    </th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td class="score-section player">
-                        <span class="score" id="playerScore">0</span>
-                    </td>
-                    <td class="score-section computer">
-                        <span class="score" id="computerScore">0</span>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-
         <!-- Cribbage Board -->
         <div class="cribbage-board" role="img" aria-label="Cribbage scoring board">
             <div class="board-row player-row">
-                <span class="board-label">PLAYER</span>
-                <div class="peg-track" id="playerTrack" role="progressbar" aria-label="Player score progress" aria-valuemin="0" aria-valuemax="121" aria-valuenow="0"></div>
+                <span class="board-label" id="playerLabel">PLAYER: 0</span>
+                <div class="peg-track" id="playerTrack" role="progressbar" aria-label="Player score: 0 of 121" aria-valuemin="0" aria-valuemax="121" aria-valuenow="0"></div>
             </div>
             <div class="board-row computer-row">
-                <span class="board-label">COMPUTER</span>
-                <div class="peg-track" id="computerTrack" role="progressbar" aria-label="Computer score progress" aria-valuemin="0" aria-valuemax="121" aria-valuenow="0"></div>
+                <span class="board-label" id="computerLabel">COMPUTER: 0</span>
+                <div class="peg-track" id="computerTrack" role="progressbar" aria-label="Computer score: 0 of 121" aria-valuemin="0" aria-valuemax="121" aria-valuenow="0"></div>
             </div>
             <div id="scoreAnnouncement" class="sr-only" aria-live="polite" aria-atomic="true"></div>
         </div>

@@ -590,9 +590,8 @@ class GameUI {
 
     initializeElements() {
         this.elements = {
-            playerScore: document.getElementById('playerScore'),
-            computerScore: document.getElementById('computerScore'),
-            playCountDisplay: document.getElementById('playCountDisplay'),
+            playerLabel: document.getElementById('playerLabel'),
+            computerLabel: document.getElementById('computerLabel'),
             playCountDisplay: document.getElementById('playCountDisplay'),
             playerHand: document.getElementById('playerHand'),
             computerHand: document.getElementById('computerHand'),
@@ -821,10 +820,6 @@ class GameUI {
     }
 
     updateUI() {
-        // Update scores
-        this.elements.playerScore.textContent = this.game.player.score;
-        this.elements.computerScore.textContent = this.game.computer.score;
-
         // Update play count display in played cards area
         if (this.game.state === 'PLAY' && this.game.currentCount > 0) {
             this.elements.playCountDisplay.textContent = `Count: ${this.game.currentCount}`;
@@ -872,12 +867,20 @@ class GameUI {
             const percentage = Math.min((score / 121) * 100, 100);
             peg.style.left = `${percentage}%`;
             
-            // Update ARIA attributes for accessibility
-            track.setAttribute('aria-valuenow', score);
-            
-            // Announce score changes to screen readers
+            // Update ARIA attributes and labels for accessibility
             const isPlayer = track.id === 'playerTrack';
             const label = isPlayer ? 'Player' : 'Computer';
+            
+            track.setAttribute('aria-valuenow', score);
+            track.setAttribute('aria-label', `${label} score: ${score} of 121`);
+            
+            // Update visible label
+            const labelElement = isPlayer ? this.elements.playerLabel : this.elements.computerLabel;
+            if (labelElement) {
+                labelElement.textContent = `${label.toUpperCase()}: ${score}`;
+            }
+            
+            // Announce score changes to screen readers
             const announcement = document.getElementById('scoreAnnouncement');
             if (announcement && score > 0) {
                 announcement.textContent = `${label} score: ${score}`;
