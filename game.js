@@ -875,9 +875,13 @@ class GameUI {
             track.setAttribute('aria-label', `${label} score: ${score} of 121`);
             
             // Update visible label
-            const labelElement = isPlayer ? this.elements.playerLabel : this.elements.computerLabel;
-            if (labelElement) {
-                labelElement.textContent = `${label.toUpperCase()}: ${score}`;
+            try {
+                const labelElement = isPlayer ? this.elements.playerLabel : this.elements.computerLabel;
+                if (labelElement) {
+                    labelElement.textContent = `${label.toUpperCase()}: ${score}`;
+                }
+            } catch (e) {
+                console.error('Error updating label:', e);
             }
             
             // Announce score changes to screen readers
