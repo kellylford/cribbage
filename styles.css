@@ -251,6 +251,63 @@ body {
     color: #000;
 }
 
+/* Modal Dialog */
+.modal {
+    display: flex;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background-color: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+}
+
+.modal-content h2 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+    font-size: 24px;
+}
+
+.modal-content p {
+    color: #555;
+    margin-bottom: 20px;
+    font-size: 16px;
+}
+
+.modal-button {
+    background: #3498db;
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.modal-button:hover {
+    background: #2980b9;
+}
+
+.modal-button:focus-visible {
+    outline: 3px solid #f39c12;
+    outline-offset: 2px;
+}
+
 /* Controls */
 .controls {
     display: flex;

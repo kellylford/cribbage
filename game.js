@@ -629,6 +629,18 @@ class GameUI {
         this.elements.discardButton.addEventListener('click', () => this.handleDiscard());
         this.elements.goButton.addEventListener('click', () => this.handleGo());
         this.elements.continueButton.addEventListener('click', () => this.handleContinue());
+        
+        // Welcome modal
+        const welcomeModal = document.getElementById('welcomeModal');
+        const welcomeOkButton = document.getElementById('welcomeOkButton');
+        welcomeOkButton.addEventListener('click', () => {
+            welcomeModal.style.display = 'none';
+            welcomeOkButton.focus();
+        });
+        
+        // Show modal on load
+        welcomeModal.style.display = 'flex';
+        setTimeout(() => welcomeOkButton.focus(), 100);
     }
 
     setupKeyboardNavigation() {

@@ -78,6 +78,15 @@
     <!-- Hidden live region for screen reader announcements -->
     <div id="liveAnnouncer" class="sr-only" role="status" aria-live="assertive" aria-atomic="true"></div>
 
+    <!-- Welcome Modal -->
+    <div id="welcomeModal" class="modal" role="dialog" aria-labelledby="welcomeTitle" aria-modal="true">
+        <div class="modal-content">
+            <h2 id="welcomeTitle">Welcome to Cribbage</h2>
+            <p>Choose OK to play</p>
+            <button id="welcomeOkButton" class="modal-button">OK</button>
+        </div>
+    </div>
+
     <script src="game.js"></script>
 </body>
 </html>
