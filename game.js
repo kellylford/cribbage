@@ -739,6 +739,17 @@ class GameUI {
         if (peg) {
             const percentage = Math.min((score / 121) * 100, 100);
             peg.style.left = `${percentage}%`;
+            
+            // Update ARIA attributes for accessibility
+            track.setAttribute('aria-valuenow', score);
+            
+            // Announce score changes to screen readers
+            const isPlayer = track.id === 'playerTrack';
+            const label = isPlayer ? 'Player' : 'Computer';
+            const announcement = document.getElementById('scoreAnnouncement');
+            if (announcement && score > 0) {
+                announcement.textContent = `${label} score: ${score}`;
+            }
         }
     }
 
