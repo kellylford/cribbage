@@ -392,37 +392,120 @@ body {
 
 /* Responsive Design */
 @media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+
+    .game-container {
+        padding: 10px;
+    }
+
+    h1 {
+        font-size: 1.5em !important;
+        margin-bottom: 8px !important;
+    }
+
     .score-bar {
+        padding: 10px;
+        margin-bottom: 10px;
+    }
+
+    .score-bar thead tr,
+    .score-bar tbody tr {
         grid-template-columns: 1fr;
-        gap: 10px;
+        gap: 5px;
     }
 
     .score-section {
         text-align: center !important;
     }
 
+    .score-section .score {
+        font-size: 32px !important;
+    }
+
+    .score-section.count .score {
+        font-size: 24px !important;
+    }
+
+    .cribbage-board {
+        padding: 10px;
+        margin-bottom: 10px;
+    }
+
+    .board-row {
+        margin: 5px 0;
+    }
+
+    .peg-track {
+        height: 20px;
+    }
+
+    .peg {
+        width: 14px;
+        height: 14px;
+    }
+
+    .game-status {
+        padding: 10px;
+        margin-bottom: 10px;
+    }
+
+    .game-status h3 {
+        font-size: 14px;
+        margin-bottom: 5px;
+    }
+
+    .status-messages {
+        max-height: 80px;
+        font-size: 12px;
+    }
+
+    .status-message {
+        padding: 4px;
+    }
+
+    .hand-section {
+        margin-bottom: 10px;
+    }
+
+    .hand-section h3 {
+        font-size: 14px;
+        margin-bottom: 5px;
+    }
+
+    .card-container {
+        min-height: 60px;
+        padding: 5px;
+    }
+
     .card {
-        width: 80px;
-        height: 112px;
+        width: 60px;
+        height: 84px;
+        margin: 2px;
     }
 
     .card-rank {
-        font-size: 16px;
+        font-size: 14px;
     }
 
     .card-suit {
-        font-size: 20px;
+        font-size: 16px;
     }
 
     .card-center {
-        font-size: 36px;
+        font-size: 28px;
     }
 
     .controls {
         flex-direction: column;
+        margin-top: 10px;
     }
 
     .game-button {
         width: 100%;
+        padding: 10px 16px;
+        font-size: 14px;
+        margin-bottom: 5px;
     }
 }
