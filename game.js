@@ -833,7 +833,8 @@ class GameUI {
 
     updateUI() {
         // Update play count display in played cards area
-        if (this.game.state === 'PLAY' && this.game.currentCount > 0) {
+        // Show count during PLAY and during pause states (PAUSE_31, PAUSE_GO)
+        if ((this.game.state === 'PLAY' || this.game.state === 'PAUSE_31' || this.game.state === 'PAUSE_GO') && this.game.currentCount > 0) {
             this.elements.playCountDisplay.textContent = `Count: ${this.game.currentCount}`;
         } else {
             this.elements.playCountDisplay.textContent = '';
