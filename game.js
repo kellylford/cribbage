@@ -592,7 +592,7 @@ class GameUI {
         this.elements = {
             playerScore: document.getElementById('playerScore'),
             computerScore: document.getElementById('computerScore'),
-            currentCount: document.getElementById('currentCount'),
+            playCountDisplay: document.getElementById('playCountDisplay'),
             playCountDisplay: document.getElementById('playCountDisplay'),
             playerHand: document.getElementById('playerHand'),
             computerHand: document.getElementById('computerHand'),
@@ -824,7 +824,6 @@ class GameUI {
         // Update scores
         this.elements.playerScore.textContent = this.game.player.score;
         this.elements.computerScore.textContent = this.game.computer.score;
-        this.elements.currentCount.textContent = this.game.currentCount;
 
         // Update play count display in played cards area
         if (this.game.state === 'PLAY' && this.game.currentCount > 0) {
