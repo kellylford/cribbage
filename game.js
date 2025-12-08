@@ -259,10 +259,8 @@ class CribbageGame {
 
         // If 31, pause for user to continue
         if (this.currentCount === 31) {
-            this.currentCount = 0;
-            this.playedPile = [];
             this.state = 'PAUSE_31';
-            this.addMessage('Count reset. Click Continue to resume play.');
+            this.addMessage('Count of 31 reached. Click Continue to resume play.');
             return true;
         }
 
@@ -373,11 +371,8 @@ class CribbageGame {
                     }
                 }
                 
-                // Reset count
-                this.currentCount = 0;
-                this.playedPile = [];
                 this.state = 'PAUSE_GO';
-                this.addMessage('Count reset. Click Continue to resume play.');
+                this.addMessage('Go scored. Click Continue to resume play.');
                 
                 if (this.checkPlayComplete()) {
                     this.endPlay();
@@ -412,10 +407,8 @@ class CribbageGame {
                 }
             }
             
-            this.currentCount = 0;
-            this.playedPile = [];
             this.state = 'PAUSE_GO';
-            this.addMessage('Count reset. Click Continue to resume play.');
+            this.addMessage('Go scored. Click Continue to resume play.');
             
             // After a go, the player who said go first gets to lead next
             // That's the opponent of the player who got the go point
@@ -802,6 +795,9 @@ class GameUI {
             this.game.countHands();
             this.updateUI();
         } else if (this.game.state === 'PAUSE_31' || this.game.state === 'PAUSE_GO') {
+            // Now reset the count and pile after user has seen what happened
+            this.game.currentCount = 0;
+            this.game.playedPile = [];
             this.game.state = 'PLAY';
             this.updateUI();
             if (this.game.currentTurn === this.game.computer) {
