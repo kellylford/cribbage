@@ -617,12 +617,8 @@ class GameUI {
         });
         
         if (cards[this.currentCardIndex]) {
-            const cardData = this.game.player.hand[this.currentCardIndex];
-            if (cardData) {
-                // Only announce position, card's aria-label already provides name
-                this.announce(`Card ${this.currentCardIndex + 1} of ${cards.length}`);
-            }
             // Move actual keyboard focus to the current card
+            // Screen reader will announce aria-label which includes position
             cards[this.currentCardIndex].focus();
         }
     }
@@ -780,6 +776,9 @@ class GameUI {
         this.elements.playerHand.innerHTML = '';
         this.game.player.hand.forEach((card, index) => {
             const cardElement = this.createCardElement(card, true);
+            
+            // Update aria-label to include position
+            cardElement.setAttribute('aria-label', `${card.name}, card ${index + 1} of ${this.game.player.hand.length}`);
             
             // Handle selection state for discard phase
             if (this.game.state === 'DISCARD' && this.game.selectedForDiscard.has(index)) {
