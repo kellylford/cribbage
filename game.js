@@ -651,6 +651,13 @@ class GameUI {
         } else if (this.game.state === 'PLAY' && this.game.currentTurn === this.game.player) {
             if (!this.game.player.playedCards.includes(card) && this.game.currentCount + card.value <= 31) {
                 this.game.playCard(this.game.player, card);
+                // Adjust currentCardIndex after playing a card
+                // If we played the card at or before current index, shift focus left
+                if (index <= this.currentCardIndex && this.currentCardIndex > 0) {
+                    this.currentCardIndex--;
+                }
+                // Make sure index is still valid
+                this.currentCardIndex = Math.min(this.currentCardIndex, this.game.player.hand.length - 1);
                 this.updateUI();
                 setTimeout(() => this.computerPlay(), 1000);
             } else {
