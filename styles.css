@@ -167,7 +167,7 @@ body {
 /* Playing Cards */
 .card {
     width: 100px;
-    height: 119px;
+    height: 107px;
     background: white;
     border: 2px solid #333;
     border-radius: 8px;
@@ -396,7 +396,7 @@ body {
 
     .card {
         width: 60px;
-        height: 71px;
+        height: 64px;
         margin: 2px;
     }
 
