@@ -7,13 +7,18 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    
     <div class="game-container">
+        <h1 style="text-align: center; font-size: 2em; margin-bottom: 15px; color: #2c3e50;">Cribbage</h1>
+        
         <div style="text-align: center; margin-bottom: 10px;">
             <a href="rules.html" style="color: #1a5490; text-decoration: underline; font-weight: bold; font-size: 16px;">📖 How to Play Cribbage</a>
         </div>
         
+        <main id="main-content">
         <!-- Score Display -->
-        <table class="score-bar" role="table" aria-label="Game scores">
+        <table class="score-bar" aria-label="Game scores">
             <thead>
                 <tr>
                     <th scope="col" class="score-section player">
@@ -97,6 +102,7 @@
             <button id="goButton" class="game-button" disabled>Go</button>
             <button id="continueButton" class="game-button" disabled>Continue</button>
         </div>
+        </main>
     </div>
 
     <!-- Hidden live region for screen reader announcements -->

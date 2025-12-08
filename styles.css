@@ -163,7 +163,7 @@ body {
     margin: 0;
 }
 
-.status-messages:focus {
+.status-messages:focus-visible {
     outline: 2px solid #3498db;
     outline-offset: 2px;
 }
@@ -173,7 +173,7 @@ body {
     border-bottom: 1px solid #ecf0f1;
 }
 
-.status-message:focus {
+.status-message:focus-visible {
     background: #e3f2fd;
     outline: 2px solid #3498db;
     outline-offset: -2px;
@@ -226,7 +226,7 @@ body {
     align-items: center;
 }
 
-.card-container:focus {
+.card-container:focus-visible {
     outline: 3px solid #3498db;
     outline-offset: 2px;
 }
@@ -355,9 +355,26 @@ body {
     opacity: 0.7;
 }
 
-.game-button:focus {
+.game-button:focus-visible {
     outline: 3px solid #3498db;
     outline-offset: 2px;
+}
+
+/* Skip Link for Keyboard Navigation */
+.skip-link {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: #2c3e50;
+    color: white;
+    padding: 8px;
+    text-decoration: none;
+    z-index: 100;
+    font-weight: bold;
+}
+
+.skip-link:focus {
+    top: 0;
 }
 
 /* Screen Reader Only */

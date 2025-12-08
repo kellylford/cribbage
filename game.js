@@ -583,17 +583,6 @@ class GameUI {
             }
         });
 
-        // Focus management for status messages list
-        this.elements.statusMessages.addEventListener('focus', (e) => {
-            const messages = Array.from(this.elements.statusMessages.querySelectorAll('li'));
-            if (messages.length === 0) return;
-            
-            // If focus is on the ul itself (from tabbing), move focus to first item
-            if (e.target === this.elements.statusMessages) {
-                messages[0].focus();
-            }
-        });
-
         // Keyboard navigation for status messages list
         this.elements.statusMessages.addEventListener('keydown', (e) => {
             const messages = Array.from(this.elements.statusMessages.querySelectorAll('li'));
