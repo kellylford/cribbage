@@ -257,6 +257,15 @@ class CribbageGame {
 
         this.addMessage(`${player.name} plays ${card} (Count: ${this.currentCount})`);
 
+        // If 31, pause for user to continue
+        if (this.currentCount === 31) {
+            this.currentCount = 0;
+            this.playedPile = [];
+            this.state = 'PAUSE_31';
+            this.addMessage('Count reset. Click Continue to resume play.');
+            return true;
+        }
+
         // Check for end of play
         if (this.checkPlayComplete()) {
             this.endPlay();
@@ -417,7 +426,12 @@ class CribbageGame {
     }
 
     endPlay() {
-        this.addMessage('Play phase complete. Counting hands...');
+        this.addMessage('Play phase complete. Click Continue to count hands.');
+        this.state = 'PAUSE_BEFORE_COUNT';
+    }
+
+    countHands() {
+        this.addMessage('Counting hands...');
         
         // Score hands - use playedCards since all cards have been played
         const nonDealer = this.dealer === this.player ? this.computer : this.player;
@@ -769,9 +783,20 @@ class GameUI {
     }
 
     handleContinue() {
-        this.game.startRound();
-        this.currentCardIndex = 0;
-        this.updateUI();
+        if (this.game.state === 'PAUSE_BEFORE_COUNT') {
+            this.game.countHands();
+            this.updateUI();
+        } else if (this.game.state === 'PAUSE_31') {
+            this.game.state = 'PLAY';
+            this.updateUI();
+            if (this.game.currentTurn === this.game.computer) {
+                setTimeout(() => this.computerPlay(), 1000);
+            }
+        } else if (this.game.state === 'ROUND_OVER') {
+            this.game.startRound();
+            this.currentCardIndex = 0;
+            this.updateUI();
+        }
     }
 
     computerPlay() {
@@ -839,7 +864,7 @@ class GameUI {
         this.elements.discardButton.disabled = this.game.state !== 'DISCARD' || this.game.selectedForDiscard.size !== 2;
         this.elements.discardButton.textContent = `Discard (${this.game.selectedForDiscard.size}/2)`;
         this.elements.goButton.disabled = this.game.state !== 'PLAY' || !this.game.canPlay(this.game.player);
-        this.elements.continueButton.disabled = this.game.state !== 'ROUND_OVER';
+        this.elements.continueButton.disabled = this.game.state !== 'ROUND_OVER' && this.game.state !== 'PAUSE_BEFORE_COUNT' && this.game.state !== 'PAUSE_31';
     }
 
     updatePegPosition(track, score) {
@@ -900,7 +925,8 @@ class GameUI {
 
     renderComputerHand() {
         this.elements.computerHand.innerHTML = '';
-        const count = this.game.computer.hand.length - this.game.computer.playedCards.length;
+        // Show card backs for remaining cards in computer's hand
+        const count = this.game.computer.hand.length;
         
         for (let i = 0; i < count; i++) {
             const cardElement = this.createCardElement(null, false);
