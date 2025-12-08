@@ -10,6 +10,11 @@ class Card {
         return rankValue >= 10 ? 10 : rankValue;
     }
 
+    get rankValue() {
+        // For sorting purposes: Ace=1, 2=2, ..., King=13
+        return ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'].indexOf(this.rank) + 1;
+    }
+
     get name() {
         const rankNames = {
             'A': 'Ace', '2': 'Two', '3': 'Three', '4': 'Four', '5': 'Five',
@@ -96,6 +101,10 @@ class Player {
         this.hand = [];
         this.playedCards = [];
     }
+
+    sortHand() {
+        this.hand.sort((a, b) => a.rankValue - b.rankValue);
+    }
 }
 
 // Game Logic
@@ -155,6 +164,12 @@ class CribbageGame {
         }
 
         this.startRound();
+    }
+
+    getCutForDealAnnouncement() {
+        // Returns the batched announcement for cut for deal
+        // This will be called by GameUI to provide a combined announcement
+        return this.lastCutAnnouncement;
     }
 
     startRound() {
@@ -505,6 +520,9 @@ class GameUI {
     constructor() {
         this.game = new CribbageGame();
         this.currentCardIndex = 0;
+        this.announcementQueue = [];
+        this.announcementTimeout = null;
+        this.suppressIndividualAnnouncements = false;
         this.initializeElements();
         this.setupEventListeners();
         this.setupKeyboardNavigation();
@@ -657,8 +675,30 @@ class GameUI {
     }
 
     handleCut() {
+        // Suppress individual announcements and collect them for batching
+        this.suppressIndividualAnnouncements = true;
+        const messagesBefore = this.elements.statusMessages.children.length;
+        
         this.game.cutForDeal();
         this.updateUI();
+        
+        // Re-enable individual announcements
+        this.suppressIndividualAnnouncements = false;
+        
+        // Batch announce the cut results
+        const messagesAfter = this.elements.statusMessages.children.length;
+        const newMessageCount = messagesAfter - messagesBefore;
+        
+        if (newMessageCount > 0) {
+            const messages = [];
+            for (let i = 0; i < newMessageCount && i < this.elements.statusMessages.children.length; i++) {
+                messages.push(this.elements.statusMessages.children[i].textContent);
+            }
+            // Queue all messages and batch them
+            messages.reverse().forEach(msg => this.queueAnnouncement(msg));
+            this.batchAnnounce(150);
+        }
+        
         if (this.game.state === 'DISCARD') {
             setTimeout(() => this.elements.playerHand.focus(), 100);
         }
@@ -780,6 +820,8 @@ class GameUI {
 
     renderPlayerHand() {
         this.elements.playerHand.innerHTML = '';
+        // Sort the hand before displaying (aces low)
+        this.game.player.sortHand();
         this.game.player.hand.forEach((card, index) => {
             const cardElement = this.createCardElement(card, true);
             
@@ -878,7 +920,11 @@ class GameUI {
         messageItem.textContent = message;
         messageItem.setAttribute('tabindex', '-1');
         this.elements.statusMessages.insertBefore(messageItem, this.elements.statusMessages.firstChild);
-        this.announce(message);
+        
+        // Only announce immediately if not suppressing for batching
+        if (!this.suppressIndividualAnnouncements) {
+            this.announce(message);
+        }
     }
 
     announce(message) {
@@ -886,6 +932,27 @@ class GameUI {
         setTimeout(() => {
             this.elements.liveAnnouncer.textContent = '';
         }, 1000);
+    }
+
+    queueAnnouncement(message) {
+        this.announcementQueue.push(message);
+    }
+
+    batchAnnounce(delay = 100) {
+        // Clear any pending batch
+        if (this.announcementTimeout) {
+            clearTimeout(this.announcementTimeout);
+        }
+
+        // Wait for all announcements to queue, then deliver as one
+        this.announcementTimeout = setTimeout(() => {
+            if (this.announcementQueue.length > 0) {
+                const batchedMessage = this.announcementQueue.join('. ');
+                this.announce(batchedMessage);
+                this.announcementQueue = [];
+            }
+            this.announcementTimeout = null;
+        }, delay);
     }
 }
 
