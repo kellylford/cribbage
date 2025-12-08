@@ -147,7 +147,7 @@ body {
 }
 
 .card-container {
-    min-height: 70px;
+    min-height: 42px;
     background: white;
     border: 2px solid #34495E;
     border-radius: 8px;
@@ -167,7 +167,7 @@ body {
 /* Playing Cards */
 .card {
     width: 100px;
-    height: 91px;
+    height: 55px;
     background: white;
     border: 2px solid #333;
     border-radius: 8px;
@@ -396,7 +396,7 @@ body {
 
     .card {
         width: 60px;
-        height: 55px;
+        height: 33px;
         margin: 2px;
     }
 
