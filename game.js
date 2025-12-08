@@ -744,6 +744,12 @@ class GameUI {
         this.renderComputerHand();
         this.renderCrib();
         this.renderPlayedCards();
+        
+        // Restore focus to current card after re-rendering
+        const cards = Array.from(this.elements.playerHand.children);
+        if (cards[this.currentCardIndex]) {
+            cards[this.currentCardIndex].focus();
+        }
 
         // Update buttons
         this.elements.cutButton.disabled = this.game.state !== 'CUT_FOR_DEAL';
