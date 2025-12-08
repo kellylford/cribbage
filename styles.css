@@ -74,23 +74,23 @@ body {
 /* Game Status */
 .game-status {
     background: white;
-    padding: 15px;
+    padding: 8px;
     border-radius: 8px;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     border: 2px solid #34495E;
 }
 
 .game-status h3 {
-    margin-bottom: 10px;
+    margin-bottom: 5px;
     color: #2c3e50;
-    font-size: 16px;
+    font-size: 14px;
 }
 
 .status-messages {
-    height: 120px;
+    height: 80px;
     overflow-y: auto;
-    font-size: 14px;
-    line-height: 1.6;
+    font-size: 12px;
+    line-height: 1.4;
     list-style: none;
     padding: 0;
     margin: 0;
@@ -102,7 +102,7 @@ body {
 }
 
 .status-message {
-    padding: 8px;
+    padding: 4px;
     border-bottom: 1px solid #ecf0f1;
 }
 
