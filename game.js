@@ -780,9 +780,12 @@ class GameUI {
         this.game.player.hand.forEach((card, index) => {
             const cardElement = this.createCardElement(card, true);
             
-            if (this.game.selectedForDiscard.has(index)) {
+            // Handle selection state for discard phase
+            if (this.game.state === 'DISCARD' && this.game.selectedForDiscard.has(index)) {
                 cardElement.classList.add('selected');
                 cardElement.setAttribute('aria-pressed', 'true');
+            } else {
+                cardElement.setAttribute('aria-pressed', 'false');
             }
             
             if (this.game.player.playedCards.includes(card)) {
