@@ -87,7 +87,7 @@ body {
 }
 
 .status-messages {
-    height: 80px;
+    height: 60px;
     overflow-y: auto;
     font-size: 12px;
     line-height: 1.4;
@@ -374,7 +374,7 @@ body {
     }
 
     .status-messages {
-        height: 80px;
+        height: 60px;
         font-size: 12px;
     }
 
