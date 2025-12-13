@@ -923,15 +923,34 @@ class GameUI {
             cards[this.currentCardIndex].focus();
         }
 
-        // Update buttons
-        this.elements.cutButton.disabled = this.game.state !== 'CUT_FOR_DEAL';
-        this.elements.goButton.disabled = this.game.state !== 'PLAY' || !this.game.canPlay(this.game.player);
+        // Update buttons - hide/show based on game state
+        // Cut button only visible at start
+        if (this.game.state === 'CUT_FOR_DEAL') {
+            this.elements.cutButton.style.display = '';
+            this.elements.cutButton.disabled = false;
+        } else {
+            this.elements.cutButton.style.display = 'none';
+        }
+        
+        // Go button only visible during play phase
+        if (this.game.state === 'PLAY') {
+            this.elements.goButton.style.display = '';
+            this.elements.goButton.disabled = !this.game.canPlay(this.game.player);
+        } else {
+            this.elements.goButton.style.display = 'none';
+        }
         
         // Continue button handles both discard and continue actions
         const isDiscardState = this.game.state === 'DISCARD' && this.game.selectedForDiscard.size === 2;
         const isContinueState = this.game.state === 'ROUND_OVER' || this.game.state === 'PAUSE_BEFORE_COUNT' || this.game.state === 'PAUSE_31' || this.game.state === 'PAUSE_GO';
-        this.elements.continueButton.disabled = !isDiscardState && !isContinueState;
-        this.elements.continueButton.textContent = 'Continue (Alt+N)';
+        
+        if (isDiscardState || isContinueState) {
+            this.elements.continueButton.style.display = '';
+            this.elements.continueButton.disabled = false;
+            this.elements.continueButton.textContent = 'Continue (Alt+N)';
+        } else {
+            this.elements.continueButton.style.display = 'none';
+        }
     }
 
     updatePegPosition(track, score) {
