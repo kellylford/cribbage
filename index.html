@@ -7,14 +7,8 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <a href="#main-content" class="skip-link">Skip to main content</a>
-    
     <div class="game-container">
         <h1 style="text-align: center; font-size: 2em; margin-bottom: 15px; color: #2c3e50;">Cribbage</h1>
-        
-        <div style="text-align: center; margin-bottom: 10px;">
-            <a href="rules.html" style="color: #1a5490; text-decoration: underline; font-weight: bold; font-size: 16px;">📖 How to Play Cribbage</a>
-        </div>
         
         <main id="main-content">
         <!-- Cribbage Board -->
@@ -60,19 +54,19 @@
             <div class="card-container" id="playerHand" role="group" aria-label="Your hand">Container should be ~42px high until cards dealt</div>
         </div>
 
-        <!-- Report Issue Link -->
-        <div style="text-align: center; margin: 20px 0;">
-            <a href="https://github.com/kellylford/cribbage/issues/new" target="_blank" rel="noopener noreferrer" style="color: #2563eb; text-decoration: underline; font-weight: 600;">Report an Issue</a>
-        </div>
-
         <!-- Controls -->
         <div class="controls">
             <button id="cutButton" class="game-button">Cut for Deal</button>
-            <button id="discardButton" class="game-button" disabled>Discard (0/2)</button>
             <button id="goButton" class="game-button" disabled>Go</button>
-            <button id="continueButton" class="game-button" disabled>Continue</button>
+            <button id="continueButton" class="game-button" disabled accesskey="n">Continue (Alt+N)</button>
         </div>
         </main>
+        
+        <!-- Links -->
+        <div style="text-align: center; margin: 20px 0; font-size: 14px;">
+            <a href="rules.html" style="color: #1a5490; text-decoration: underline; font-weight: bold; margin-right: 20px;">📖 How to Play Cribbage</a>
+            <a href="https://github.com/kellylford/cribbage/issues/new" target="_blank" rel="noopener noreferrer" style="color: #2563eb; text-decoration: underline; font-weight: 600;">Report an Issue</a>
+        </div>
     </div>
 
     <!-- Hidden live region for screen reader announcements -->
