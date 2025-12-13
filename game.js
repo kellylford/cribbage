@@ -605,7 +605,8 @@ class GameUI {
             continueButton: document.getElementById('continueButton'),
             liveAnnouncer: document.getElementById('liveAnnouncer'),
             playerTrack: document.getElementById('playerTrack'),
-            computerTrack: document.getElementById('computerTrack')
+            computerTrack: document.getElementById('computerTrack'),
+            cribbageBoard: document.querySelector('.cribbage-board')
         };
 
         // Create peg tracks
@@ -890,6 +891,12 @@ class GameUI {
         // Update peg positions
         this.updatePegPosition(this.elements.playerTrack, this.game.player.score);
         this.updatePegPosition(this.elements.computerTrack, this.game.computer.score);
+        
+        // Update cribbage board aria-label with current scores
+        if (this.elements.cribbageBoard) {
+            this.elements.cribbageBoard.setAttribute('aria-label', 
+                `Cribbage scoring board. Player score: ${this.game.player.score} of 121. Computer score: ${this.game.computer.score} of 121.`);
+        }
 
         // Update crib heading
         if (this.game.dealer) {
