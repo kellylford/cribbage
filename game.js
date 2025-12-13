@@ -260,7 +260,7 @@ class CribbageGame {
         // If 31, pause for user to continue
         if (this.currentCount === 31) {
             this.state = 'PAUSE_31';
-            this.addMessage('Count of 31 reached. Click Continue to resume play.');
+            this.addMessage('Count of 31 reached. Use Continue to resume play.');
             return true;
         }
 
@@ -373,7 +373,7 @@ class CribbageGame {
                 }
                 
                 this.state = 'PAUSE_GO';
-                this.addMessage('Go scored. Click Continue to resume play.');
+                this.addMessage('Go scored. Use Continue to resume play.');
                 
                 // After a go, the player who said go first gets to lead next
                 // That's the opponent of the player who got the go point
@@ -408,7 +408,7 @@ class CribbageGame {
             }
             
             this.state = 'PAUSE_GO';
-            this.addMessage('Go scored. Click Continue to resume play.');
+            this.addMessage('Go scored. Use Continue to resume play.');
             
             // After a go, the player who said go first gets to lead next
             // That's the opponent of the player who got the go point
@@ -423,7 +423,7 @@ class CribbageGame {
     }
 
     endPlay() {
-        this.addMessage('Play phase complete. Click Continue to count hands.');
+        this.addMessage('Play phase complete. Use Continue to count hands.');
         this.state = 'PAUSE_BEFORE_COUNT';
     }
 
