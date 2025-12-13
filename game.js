@@ -465,6 +465,10 @@ class CribbageGame {
         
         // Switch dealer
         this.dealer = this.dealer === this.player ? this.computer : this.player;
+        
+        // Add current score to game log after counting
+        this.addMessage(`Current score: Player ${this.player.score}, Computer ${this.computer.score}`);
+        
         this.state = 'ROUND_OVER';
     }
 
@@ -834,9 +838,7 @@ class GameUI {
                 for (let i = 0; i < newMessageCount && i < this.elements.statusMessages.children.length; i++) {
                     messages.push(this.elements.statusMessages.children[i].textContent);
                 }
-                // Add current score to the announcement
-                messages.push(`Current score: Player ${this.game.player.score}, Computer ${this.game.computer.score}`);
-                // Queue all messages and batch them
+                // Queue all messages and batch them (score is already included in the messages)
                 messages.reverse().forEach(msg => this.queueAnnouncement(msg));
                 this.batchAnnounce(150);
             }
