@@ -627,6 +627,27 @@ class GameUI {
         this.elements.cutButton.addEventListener('click', () => this.handleCut());
         this.elements.goButton.addEventListener('click', () => this.handleGo());
         this.elements.continueButton.addEventListener('click', () => this.handleContinue());
+        
+        // Manual keyboard shortcut handler for Alt+N (accesskey fallback)
+        document.addEventListener('keydown', (e) => {
+            if (e.altKey && e.key === 'n') {
+                e.preventDefault();
+                // Cut button (Alt+N)
+                if (this.game.state === 'CUT_FOR_DEAL' && !this.elements.cutButton.disabled) {
+                    this.handleCut();
+                }
+                // Continue button (Alt+N)
+                else if (!this.elements.continueButton.disabled && this.elements.continueButton.style.display !== 'none') {
+                    this.handleContinue();
+                }
+            } else if (e.altKey && e.key === 'g') {
+                e.preventDefault();
+                // Go button (Alt+G)
+                if (this.game.state === 'PLAY' && !this.elements.goButton.disabled) {
+                    this.handleGo();
+                }
+            }
+        });
     }
 
     setupKeyboardNavigation() {
@@ -716,7 +737,27 @@ class GameUI {
             this.updateUI();
         } else if (this.game.state === 'PLAY' && this.game.currentTurn === this.game.player) {
             if (!this.game.player.playedCards.includes(card) && this.game.currentCount + card.value <= 31) {
+                // Batch messages from playing a card
+                this.suppressIndividualAnnouncements = true;
+                const messagesBefore = this.elements.statusMessages.children.length;
+                
                 this.game.playCard(this.game.player, card);
+                
+                this.suppressIndividualAnnouncements = false;
+                
+                // Collect and batch announce the messages
+                const messagesAfter = this.elements.statusMessages.children.length;
+                const newMessageCount = messagesAfter - messagesBefore;
+                
+                if (newMessageCount > 0) {
+                    const messages = [];
+                    for (let i = 0; i < newMessageCount && i < this.elements.statusMessages.children.length; i++) {
+                        messages.push(this.elements.statusMessages.children[i].textContent);
+                    }
+                    messages.reverse().forEach(msg => this.queueAnnouncement(msg));
+                    this.batchAnnounce(150);
+                }
+                
                 // Adjust currentCardIndex after playing a card
                 // If we played the card at or before current index, shift focus left
                 if (index <= this.currentCardIndex && this.currentCardIndex > 0) {
@@ -766,7 +807,27 @@ class GameUI {
     }
 
     handleGo() {
+        // Batch messages from saying Go
+        this.suppressIndividualAnnouncements = true;
+        const messagesBefore = this.elements.statusMessages.children.length;
+        
         this.game.sayGo();
+        
+        this.suppressIndividualAnnouncements = false;
+        
+        // Collect and batch announce the messages
+        const messagesAfter = this.elements.statusMessages.children.length;
+        const newMessageCount = messagesAfter - messagesBefore;
+        
+        if (newMessageCount > 0) {
+            const messages = [];
+            for (let i = 0; i < newMessageCount && i < this.elements.statusMessages.children.length; i++) {
+                messages.push(this.elements.statusMessages.children[i].textContent);
+            }
+            messages.reverse().forEach(msg => this.queueAnnouncement(msg));
+            this.batchAnnounce(150);
+        }
+        
         this.updateUI();
         // Only schedule computer play if game is still in PLAY state
         if (this.game.state === 'PLAY' && this.game.currentTurn === this.game.computer) {
@@ -833,6 +894,8 @@ class GameUI {
                 messages.reverse().forEach(msg => this.queueAnnouncement(msg));
                 this.batchAnnounce(150);
             }
+            // Update UI again to ensure Continue button shows for ROUND_OVER state
+            this.updateUI();
         } else if (this.game.state === 'PAUSE_31' || this.game.state === 'PAUSE_GO') {
             // Now reset the count and pile after user has seen what happened
             this.game.currentCount = 0;
@@ -847,11 +910,34 @@ class GameUI {
                 this.updateUI();
                 if (this.game.currentTurn === this.game.computer) {
                     setTimeout(() => this.computerPlay(), 1000);
+                } else if (this.game.currentTurn === this.game.player) {
+                    // Announce to player that it's their turn
+                    this.announce("It's your turn to play.");
                 }
             }
         } else if (this.game.state === 'ROUND_OVER') {
+            // Batch messages from starting a new round
+            this.suppressIndividualAnnouncements = true;
+            const messagesBefore = this.elements.statusMessages.children.length;
+            
             this.game.startRound();
             this.currentCardIndex = 0;
+            
+            this.suppressIndividualAnnouncements = false;
+            
+            // Collect and batch announce the messages
+            const messagesAfter = this.elements.statusMessages.children.length;
+            const newMessageCount = messagesAfter - messagesBefore;
+            
+            if (newMessageCount > 0) {
+                const messages = [];
+                for (let i = 0; i < newMessageCount && i < this.elements.statusMessages.children.length; i++) {
+                    messages.push(this.elements.statusMessages.children[i].textContent);
+                }
+                messages.reverse().forEach(msg => this.queueAnnouncement(msg));
+                this.batchAnnounce(150);
+            }
+            
             this.updateUI();
         }
     }
@@ -867,9 +953,25 @@ class GameUI {
         if (playableCards.length > 0) {
             // Enable batching for multiple messages
             this.suppressIndividualAnnouncements = true;
+            const messagesBefore = this.elements.statusMessages.children.length;
+            
             this.game.playCard(this.game.computer, playableCards[0]);
+            
             this.suppressIndividualAnnouncements = false;
-            this.batchAnnounce();
+            
+            // Collect and batch announce the messages
+            const messagesAfter = this.elements.statusMessages.children.length;
+            const newMessageCount = messagesAfter - messagesBefore;
+            
+            if (newMessageCount > 0) {
+                const messages = [];
+                for (let i = 0; i < newMessageCount && i < this.elements.statusMessages.children.length; i++) {
+                    messages.push(this.elements.statusMessages.children[i].textContent);
+                }
+                messages.reverse().forEach(msg => this.queueAnnouncement(msg));
+                this.batchAnnounce(150);
+            }
+            
             this.updateUI();
             
             if (this.game.state === 'PLAY' && this.game.currentTurn === this.game.computer) {
@@ -878,9 +980,25 @@ class GameUI {
         } else {
             // Enable batching for multiple messages
             this.suppressIndividualAnnouncements = true;
+            const messagesBefore = this.elements.statusMessages.children.length;
+            
             this.game.sayGo();
+            
             this.suppressIndividualAnnouncements = false;
-            this.batchAnnounce();
+            
+            // Collect and batch announce the messages
+            const messagesAfter = this.elements.statusMessages.children.length;
+            const newMessageCount = messagesAfter - messagesBefore;
+            
+            if (newMessageCount > 0) {
+                const messages = [];
+                for (let i = 0; i < newMessageCount && i < this.elements.statusMessages.children.length; i++) {
+                    messages.push(this.elements.statusMessages.children[i].textContent);
+                }
+                messages.reverse().forEach(msg => this.queueAnnouncement(msg));
+                this.batchAnnounce(150);
+            }
+            
             this.updateUI();
             // After sayGo, continue playing if still in PLAY state and computer's turn
             if (this.game.state === 'PLAY' && this.game.currentTurn === this.game.computer) {
@@ -935,6 +1053,7 @@ class GameUI {
         if (this.game.state === 'CUT_FOR_DEAL') {
             this.elements.cutButton.style.display = '';
             this.elements.cutButton.disabled = false;
+            this.elements.cutButton.focus();
         } else {
             this.elements.cutButton.style.display = 'none';
         }
@@ -983,9 +1102,9 @@ class GameUI {
                 console.error('Error updating label:', e);
             }
             
-            // Announce score changes to screen readers
+            // Announce score changes to screen readers (but not during counting to avoid duplicates)
             const announcement = document.getElementById('scoreAnnouncement');
-            if (announcement && score > 0) {
+            if (announcement && score > 0 && this.game.state !== 'PAUSE_BEFORE_COUNT') {
                 announcement.textContent = `${label} score: ${score}`;
             }
         }
@@ -1094,10 +1213,8 @@ class GameUI {
         // Only announce immediately if not suppressing for batching
         if (!this.suppressIndividualAnnouncements) {
             this.announce(message);
-        } else {
-            // Queue for batch announcement
-            this.queueAnnouncement(message);
         }
+        // When suppressing, don't queue here - let the batch handler collect from DOM to avoid duplicates
     }
 
     announce(message) {
