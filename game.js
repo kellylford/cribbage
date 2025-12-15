@@ -123,6 +123,7 @@ class CribbageGame {
         this.selectedForDiscard = new Set();
         this.messageListeners = [];
         this.goCount = 0;
+        this.lastWinner = null;
     }
 
     addMessageListener(callback) {
@@ -136,8 +137,16 @@ class CribbageGame {
     startNewGame() {
         this.player.score = 0;
         this.computer.score = 0;
-        this.state = 'CUT_FOR_DEAL';
-        this.addMessage('New game started. Click Cut for Deal to begin.');
+        
+        // If there was a previous winner, they get the first crib (dealer)
+        if (this.lastWinner) {
+            this.dealer = this.lastWinner;
+            this.addMessage(`New game started. ${this.dealer.name} won the last game and gets the first crib.`);
+            this.startRound();
+        } else {
+            this.state = 'CUT_FOR_DEAL';
+            this.addMessage('New game started. Click Cut for Deal to begin.');
+        }
     }
 
     cutForDeal() {
@@ -477,11 +486,15 @@ class CribbageGame {
     checkForWinner() {
         if (this.player.score >= 121) {
             this.addMessage('You win!');
+            this.lastWinner = this.player;
             this.state = 'GAME_OVER';
+            this.addMessage('Press Continue to play again.');
             return true;
         } else if (this.computer.score >= 121) {
             this.addMessage('Computer wins!');
+            this.lastWinner = this.computer;
             this.state = 'GAME_OVER';
+            this.addMessage('Press Continue to play again.');
             return true;
         }
         return false;
@@ -636,8 +649,12 @@ class GameUI {
                 if (this.game.state === 'CUT_FOR_DEAL' && !this.elements.cutButton.disabled) {
                     this.handleCut();
                 }
-                // Continue button (Alt+N)
+                // Continue/Play Again button (Alt+N)
                 else if (!this.elements.continueButton.disabled && this.elements.continueButton.style.display !== 'none') {
+                    this.handleContinue();
+                }
+                // Also check for GAME_OVER state explicitly
+                else if (this.game.state === 'GAME_OVER') {
                     this.handleContinue();
                 }
             } else if (e.altKey && e.key === 'g') {
@@ -939,6 +956,30 @@ class GameUI {
             }
             
             this.updateUI();
+        } else if (this.game.state === 'GAME_OVER') {
+            // Start a new game
+            this.suppressIndividualAnnouncements = true;
+            const messagesBefore = this.elements.statusMessages.children.length;
+            
+            this.game.startNewGame();
+            this.currentCardIndex = 0;
+            
+            this.suppressIndividualAnnouncements = false;
+            
+            // Collect and batch announce the messages
+            const messagesAfter = this.elements.statusMessages.children.length;
+            const newMessageCount = messagesAfter - messagesBefore;
+            
+            if (newMessageCount > 0) {
+                const messages = [];
+                for (let i = 0; i < newMessageCount && i < this.elements.statusMessages.children.length; i++) {
+                    messages.push(this.elements.statusMessages.children[i].textContent);
+                }
+                messages.reverse().forEach(msg => this.queueAnnouncement(msg));
+                this.batchAnnounce(150);
+            }
+            
+            this.updateUI();
         }
     }
 
@@ -1066,14 +1107,15 @@ class GameUI {
             this.elements.goButton.style.display = 'none';
         }
         
-        // Continue button handles both discard and continue actions
+        // Continue button handles discard, continue, and new game actions
         const isDiscardState = this.game.state === 'DISCARD' && this.game.selectedForDiscard.size === 2;
         const isContinueState = this.game.state === 'ROUND_OVER' || this.game.state === 'PAUSE_BEFORE_COUNT' || this.game.state === 'PAUSE_31' || this.game.state === 'PAUSE_GO';
+        const isGameOver = this.game.state === 'GAME_OVER';
         
-        if (isDiscardState || isContinueState) {
+        if (isDiscardState || isContinueState || isGameOver) {
             this.elements.continueButton.style.display = '';
             this.elements.continueButton.disabled = false;
-            this.elements.continueButton.textContent = 'Continue';
+            this.elements.continueButton.textContent = isGameOver ? 'Play Again' : 'Continue';
         } else {
             this.elements.continueButton.style.display = 'none';
         }
