@@ -259,6 +259,8 @@ class CribbageGame {
 
         // If 31, pause for user to continue
         if (this.currentCount === 31) {
+            // Switch turn to opponent before pausing - they will play first after count resets
+            this.switchTurn();
             this.state = 'PAUSE_31';
             this.addMessage('Count of 31 reached. Use Continue to resume play.');
             return true;
