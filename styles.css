@@ -483,3 +483,37 @@ body {
         margin-bottom: 5px;
     }
 }
+
+/* Page Title */
+.page-title {
+    text-align: center;
+    font-size: 2em;
+    margin-bottom: 15px;
+    color: #2c3e50;
+}
+
+/* Footer Links */
+.footer-links {
+    text-align: center;
+    margin: 20px 0;
+    font-size: 14px;
+}
+
+.footer-links a {
+    text-decoration: underline;
+    font-weight: 600;
+    margin-right: 20px;
+}
+
+.footer-links a.rules-link {
+    color: #0d3a6b;
+    font-weight: bold;
+}
+
+.footer-links a.changes-link {
+    color: #0d3a6b;
+}
+
+.footer-links a.issue-link {
+    color: #1a4dbb;
+}
