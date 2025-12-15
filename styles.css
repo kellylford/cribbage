@@ -22,11 +22,11 @@ body {
 
 /* Cribbage Board */
 .cribbage-board {
-    background: #8B4513;
+    background: #5d2e0f;
     padding: 20px;
     border-radius: 10px;
     margin-bottom: 20px;
-    border: 3px solid #654321;
+    border: 3px solid #3d1e0a;
 }
 
 .board-row {
@@ -46,7 +46,7 @@ body {
 .peg-track {
     flex: 1;
     height: 30px;
-    background: #654321;
+    background: #3d1e0a;
     border-radius: 15px;
     position: relative;
     display: flex;
@@ -131,7 +131,7 @@ body {
 
 .play-count-display {
     display: inline-block;
-    background: #e74c3c;
+    background: #c0392b;
     color: white;
     padding: 4px 12px;
     border-radius: 20px;
@@ -188,9 +188,9 @@ body {
 }
 
 .card.selected {
-    border-color: #f39c12;
+    border-color: #d68910;
     border-width: 4px;
-    background: #fff9e6;
+    background: #fff3cd;
 }
 
 .card.focused {
@@ -282,7 +282,7 @@ body {
 }
 
 .modal-content p {
-    color: #555;
+    color: #333;
     margin-bottom: 20px;
     font-size: 16px;
 }
@@ -342,9 +342,9 @@ body {
 }
 
 .game-button:disabled {
-    background: #7f8c8d;
+    background: #5a6a6c;
     cursor: not-allowed;
-    opacity: 0.7;
+    color: #e0e0e0;
 }
 
 .game-button:focus-visible {

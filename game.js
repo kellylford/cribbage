@@ -863,14 +863,22 @@ class GameUI {
         );
 
         if (playableCards.length > 0) {
+            // Enable batching for multiple messages
+            this.suppressIndividualAnnouncements = true;
             this.game.playCard(this.game.computer, playableCards[0]);
+            this.suppressIndividualAnnouncements = false;
+            this.batchAnnounce();
             this.updateUI();
             
             if (this.game.state === 'PLAY' && this.game.currentTurn === this.game.computer) {
                 setTimeout(() => this.computerPlay(), 1000);
             }
         } else {
+            // Enable batching for multiple messages
+            this.suppressIndividualAnnouncements = true;
             this.game.sayGo();
+            this.suppressIndividualAnnouncements = false;
+            this.batchAnnounce();
             this.updateUI();
             // After sayGo, continue playing if still in PLAY state and computer's turn
             if (this.game.state === 'PLAY' && this.game.currentTurn === this.game.computer) {
@@ -1084,6 +1092,9 @@ class GameUI {
         // Only announce immediately if not suppressing for batching
         if (!this.suppressIndividualAnnouncements) {
             this.announce(message);
+        } else {
+            // Queue for batch announcement
+            this.queueAnnouncement(message);
         }
     }
 
