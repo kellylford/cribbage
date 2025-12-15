@@ -246,6 +246,8 @@ class CribbageGame {
         this.playedPile.push({card, player});
         this.currentCount += card.value;
 
+        this.addMessage(`${player.name} plays ${card} (Count: ${this.currentCount})`);
+
         const points = this.scorePlay(card, player);
         if (points > 0) {
             player.score += points;
@@ -255,21 +257,10 @@ class CribbageGame {
             }
         }
 
-        this.addMessage(`${player.name} plays ${card} (Count: ${this.currentCount})`);
-
         // If 31, pause for user to continue
         if (this.currentCount === 31) {
-            // After 31, the opponent (player who didn't make 31) leads the next sequence
-            const opponent = player === this.player ? this.computer : this.player;
-            // Only switch turn if opponent has cards left to play
-            if (this.canPlay(opponent)) {
-                this.currentTurn = opponent;
-            } else if (this.canPlay(player)) {
-                // Opponent can't play, current player continues
-                this.currentTurn = player;
-            }
             this.state = 'PAUSE_31';
-            this.addMessage('Count of 31 reached. Click Continue to resume play.');
+            this.addMessage('Count of 31 reached. Use Continue to resume play.');
             return true;
         }
 
@@ -376,18 +367,17 @@ class CribbageGame {
                     this.addMessage(`${lastPlayer.name} scores 1 for go.`);
                     // Check for immediate win
                     if (this.checkForWinner()) {
+                        // State is now GAME_OVER, no need to set PAUSE_GO
                         return;
                     }
                 }
                 
                 this.state = 'PAUSE_GO';
-                this.addMessage('Go scored. Click Continue to resume play.');
+                this.addMessage('Go scored. Use Continue to resume play.');
                 
-                if (this.checkPlayComplete()) {
-                    this.endPlay();
-                } else {
-                    // After a go, the player who said go first gets to lead next
-                    // That's the opponent of the player who got the go point
+                // After a go, the player who said go first gets to lead next
+                // That's the opponent of the player who got the go point
+                if (lastPlayer) {
                     this.currentTurn = lastPlayer === this.player ? this.computer : this.player;
                 }
             } else {
@@ -412,12 +402,13 @@ class CribbageGame {
                 this.addMessage(`${lastPlayer.name} scores 1 for go.`);
                 // Check for immediate win
                 if (this.checkForWinner()) {
+                    // State is now GAME_OVER, no need to set PAUSE_GO
                     return;
                 }
             }
             
             this.state = 'PAUSE_GO';
-            this.addMessage('Go scored. Click Continue to resume play.');
+            this.addMessage('Go scored. Use Continue to resume play.');
             
             // After a go, the player who said go first gets to lead next
             // That's the opponent of the player who got the go point
@@ -432,7 +423,7 @@ class CribbageGame {
     }
 
     endPlay() {
-        this.addMessage('Play phase complete. Click Continue to count hands.');
+        this.addMessage('Play phase complete. Use Continue to count hands.');
         this.state = 'PAUSE_BEFORE_COUNT';
     }
 
@@ -474,6 +465,10 @@ class CribbageGame {
         
         // Switch dealer
         this.dealer = this.dealer === this.player ? this.computer : this.player;
+        
+        // Add current score to game log after counting
+        this.addMessage(`Current score: Player ${this.player.score}, Computer ${this.computer.score}`);
+        
         this.state = 'ROUND_OVER';
     }
 
@@ -606,12 +601,12 @@ class GameUI {
             playedCards: document.getElementById('playedCards'),
             statusMessages: document.getElementById('statusMessages'),
             cutButton: document.getElementById('cutButton'),
-            discardButton: document.getElementById('discardButton'),
             goButton: document.getElementById('goButton'),
             continueButton: document.getElementById('continueButton'),
             liveAnnouncer: document.getElementById('liveAnnouncer'),
             playerTrack: document.getElementById('playerTrack'),
-            computerTrack: document.getElementById('computerTrack')
+            computerTrack: document.getElementById('computerTrack'),
+            cribbageBoard: document.querySelector('.cribbage-board')
         };
 
         // Create peg tracks
@@ -628,21 +623,8 @@ class GameUI {
 
     setupEventListeners() {
         this.elements.cutButton.addEventListener('click', () => this.handleCut());
-        this.elements.discardButton.addEventListener('click', () => this.handleDiscard());
         this.elements.goButton.addEventListener('click', () => this.handleGo());
         this.elements.continueButton.addEventListener('click', () => this.handleContinue());
-        
-        // Welcome modal
-        const welcomeModal = document.getElementById('welcomeModal');
-        const welcomeOkButton = document.getElementById('welcomeOkButton');
-        welcomeOkButton.addEventListener('click', () => {
-            welcomeModal.style.display = 'none';
-            welcomeOkButton.focus();
-        });
-        
-        // Show modal on load
-        welcomeModal.style.display = 'flex';
-        setTimeout(() => welcomeOkButton.focus(), 100);
     }
 
     setupKeyboardNavigation() {
@@ -741,7 +723,10 @@ class GameUI {
                 // Make sure index is still valid
                 this.currentCardIndex = Math.min(this.currentCardIndex, this.game.player.hand.length - 1);
                 this.updateUI();
-                setTimeout(() => this.computerPlay(), 1000);
+                // Only schedule computer play if game is still in PLAY state (not paused for 31)
+                if (this.game.state === 'PLAY' && this.game.currentTurn === this.game.computer) {
+                    setTimeout(() => this.computerPlay(), 1000);
+                }
             } else {
                 this.announce('Cannot play that card - would exceed 31.');
             }
@@ -778,39 +763,89 @@ class GameUI {
         }
     }
 
-    handleDiscard() {
-        if (this.game.selectedForDiscard.size === 2) {
-            const indices = Array.from(this.game.selectedForDiscard).sort((a, b) => b - a);
-            this.game.discardToCrib(indices);
-            this.currentCardIndex = 0;
-            this.updateUI();
-            
-            if (this.game.currentTurn === this.game.computer) {
-                setTimeout(() => this.computerPlay(), 1000);
-            }
-        }
-    }
-
     handleGo() {
         this.game.sayGo();
         this.updateUI();
-        if (this.game.currentTurn === this.game.computer) {
+        // Only schedule computer play if game is still in PLAY state
+        if (this.game.state === 'PLAY' && this.game.currentTurn === this.game.computer) {
             setTimeout(() => this.computerPlay(), 1000);
         }
     }
 
     handleContinue() {
-        if (this.game.state === 'PAUSE_BEFORE_COUNT') {
+        // Handle discard state
+        if (this.game.state === 'DISCARD' && this.game.selectedForDiscard.size === 2) {
+            // Suppress individual announcements and collect them for batching
+            this.suppressIndividualAnnouncements = true;
+            const messagesBefore = this.elements.statusMessages.children.length;
+            
+            const indices = Array.from(this.game.selectedForDiscard).sort((a, b) => b - a);
+            this.game.discardToCrib(indices);
+            this.currentCardIndex = 0;
+            this.updateUI();
+            
+            // Re-enable individual announcements
+            this.suppressIndividualAnnouncements = false;
+            
+            // Batch announce the discard/cut card results
+            const messagesAfter = this.elements.statusMessages.children.length;
+            const newMessageCount = messagesAfter - messagesBefore;
+            
+            if (newMessageCount > 0) {
+                const messages = [];
+                for (let i = 0; i < newMessageCount && i < this.elements.statusMessages.children.length; i++) {
+                    messages.push(this.elements.statusMessages.children[i].textContent);
+                }
+                // Queue all messages and batch them
+                messages.reverse().forEach(msg => this.queueAnnouncement(msg));
+                this.batchAnnounce(150);
+            }
+            
+            // Only schedule computer play if game is still in PLAY state (not GAME_OVER)
+            if (this.game.state === 'PLAY' && this.game.currentTurn === this.game.computer) {
+                setTimeout(() => this.computerPlay(), 1000);
+            }
+        }
+        // Handle continue states
+        else if (this.game.state === 'PAUSE_BEFORE_COUNT') {
+            // Suppress individual announcements and collect them for batching
+            this.suppressIndividualAnnouncements = true;
+            const messagesBefore = this.elements.statusMessages.children.length;
+            
             this.game.countHands();
             this.updateUI();
+            
+            // Re-enable individual announcements
+            this.suppressIndividualAnnouncements = false;
+            
+            // Batch announce the hand counting results with current scores
+            const messagesAfter = this.elements.statusMessages.children.length;
+            const newMessageCount = messagesAfter - messagesBefore;
+            
+            if (newMessageCount > 0) {
+                const messages = [];
+                for (let i = 0; i < newMessageCount && i < this.elements.statusMessages.children.length; i++) {
+                    messages.push(this.elements.statusMessages.children[i].textContent);
+                }
+                // Queue all messages and batch them (score is already included in the messages)
+                messages.reverse().forEach(msg => this.queueAnnouncement(msg));
+                this.batchAnnounce(150);
+            }
         } else if (this.game.state === 'PAUSE_31' || this.game.state === 'PAUSE_GO') {
             // Now reset the count and pile after user has seen what happened
             this.game.currentCount = 0;
             this.game.playedPile = [];
-            this.game.state = 'PLAY';
-            this.updateUI();
-            if (this.game.currentTurn === this.game.computer) {
-                setTimeout(() => this.computerPlay(), 1000);
+            
+            // Check if play is complete before resuming
+            if (this.game.checkPlayComplete()) {
+                this.game.endPlay();
+                this.updateUI();
+            } else {
+                this.game.state = 'PLAY';
+                this.updateUI();
+                if (this.game.currentTurn === this.game.computer) {
+                    setTimeout(() => this.computerPlay(), 1000);
+                }
             }
         } else if (this.game.state === 'ROUND_OVER') {
             this.game.startRound();
@@ -837,6 +872,10 @@ class GameUI {
         } else {
             this.game.sayGo();
             this.updateUI();
+            // After sayGo, continue playing if still in PLAY state and computer's turn
+            if (this.game.state === 'PLAY' && this.game.currentTurn === this.game.computer) {
+                setTimeout(() => this.computerPlay(), 1000);
+            }
         }
     }
 
@@ -852,6 +891,12 @@ class GameUI {
         // Update peg positions
         this.updatePegPosition(this.elements.playerTrack, this.game.player.score);
         this.updatePegPosition(this.elements.computerTrack, this.game.computer.score);
+        
+        // Update cribbage board aria-label with current scores
+        if (this.elements.cribbageBoard) {
+            this.elements.cribbageBoard.setAttribute('aria-label', 
+                `Board: Player score: ${this.game.player.score} of 121. Computer score: ${this.game.computer.score} of 121.`);
+        }
 
         // Update crib heading
         if (this.game.dealer) {
@@ -875,12 +920,34 @@ class GameUI {
             cards[this.currentCardIndex].focus();
         }
 
-        // Update buttons
-        this.elements.cutButton.disabled = this.game.state !== 'CUT_FOR_DEAL';
-        this.elements.discardButton.disabled = this.game.state !== 'DISCARD' || this.game.selectedForDiscard.size !== 2;
-        this.elements.discardButton.textContent = `Discard (${this.game.selectedForDiscard.size}/2)`;
-        this.elements.goButton.disabled = this.game.state !== 'PLAY' || !this.game.canPlay(this.game.player);
-        this.elements.continueButton.disabled = this.game.state !== 'ROUND_OVER' && this.game.state !== 'PAUSE_BEFORE_COUNT' && this.game.state !== 'PAUSE_31' && this.game.state !== 'PAUSE_GO';
+        // Update buttons - hide/show based on game state
+        // Cut button only visible at start
+        if (this.game.state === 'CUT_FOR_DEAL') {
+            this.elements.cutButton.style.display = '';
+            this.elements.cutButton.disabled = false;
+        } else {
+            this.elements.cutButton.style.display = 'none';
+        }
+        
+        // Go button only visible during play phase
+        if (this.game.state === 'PLAY') {
+            this.elements.goButton.style.display = '';
+            this.elements.goButton.disabled = !this.game.canPlay(this.game.player);
+        } else {
+            this.elements.goButton.style.display = 'none';
+        }
+        
+        // Continue button handles both discard and continue actions
+        const isDiscardState = this.game.state === 'DISCARD' && this.game.selectedForDiscard.size === 2;
+        const isContinueState = this.game.state === 'ROUND_OVER' || this.game.state === 'PAUSE_BEFORE_COUNT' || this.game.state === 'PAUSE_31' || this.game.state === 'PAUSE_GO';
+        
+        if (isDiscardState || isContinueState) {
+            this.elements.continueButton.style.display = '';
+            this.elements.continueButton.disabled = false;
+            this.elements.continueButton.textContent = 'Continue (Alt+N)';
+        } else {
+            this.elements.continueButton.style.display = 'none';
+        }
     }
 
     updatePegPosition(track, score) {
