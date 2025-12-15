@@ -954,7 +954,7 @@ class GameUI {
         if (isDiscardState || isContinueState) {
             this.elements.continueButton.style.display = '';
             this.elements.continueButton.disabled = false;
-            this.elements.continueButton.textContent = 'Continue (Alt+N)';
+            this.elements.continueButton.textContent = 'Continue';
         } else {
             this.elements.continueButton.style.display = 'none';
         }
