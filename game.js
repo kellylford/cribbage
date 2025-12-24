@@ -216,13 +216,11 @@ class CribbageGame {
             if (removed) this.crib.push(removed);
         }
 
-        // Computer discards (simple strategy: discard first 2 cards)
-        for (let i = 0; i < 2; i++) {
-            if (this.computer.hand.length > 0) {
-                const card = this.computer.hand[0];
-                this.computer.removeCard(card);
-                this.crib.push(card);
-            }
+        // Computer discards using strategic evaluation
+        const cardsToDiscard = this.selectComputerDiscard();
+        for (const card of cardsToDiscard) {
+            const removed = this.computer.removeCard(card);
+            if (removed) this.crib.push(removed);
         }
 
         // Cut card
@@ -585,6 +583,140 @@ class CribbageGame {
         }
 
         return maxScore;
+    }
+
+    selectComputerDiscard() {
+        // Evaluate all possible 2-card discard combinations
+        // Simplified but effective strategy: minimize hand value, consider crib potential
+        const hand = this.computer.hand;
+        let bestDiscard = [hand[0], hand[1]];
+        let bestScore = Infinity;
+        
+        for (let i = 0; i < hand.length; i++) {
+            for (let j = i + 1; j < hand.length; j++) {
+                const discardPair = [hand[i], hand[j]];
+                const remainingCards = hand.filter(c => !discardPair.includes(c));
+                
+                // Score the remaining hand (simple: fifteens and pairs)
+                let handScore = 0;
+                for (const card of remainingCards) {
+                    for (const other of remainingCards) {
+                        if (card !== other && card.value + other.value === 15) {
+                            handScore += 2;
+                        }
+                    }
+                }
+                
+                // Score the crib (fifteens and pairs)
+                const cribScore = this.estimateCribScore(discardPair);
+                
+                // If computer owns the crib, weight it (it's an advantage)
+                const totalScore = this.dealer === this.computer 
+                    ? handScore + (cribScore * 1.5)
+                    : handScore - (cribScore * 1.5);
+                
+                if (totalScore < bestScore) {
+                    bestScore = totalScore;
+                    bestDiscard = discardPair;
+                }
+            }
+        }
+        
+        return bestDiscard;
+    }
+
+    estimateCribScore(cards) {
+        // Estimate potential score in crib for given 2 cards
+        let score = 0;
+        
+        // Check for fifteens
+        if (cards[0].value + cards[1].value === 15) {
+            score += 2;
+        }
+        
+        // Check for pairs
+        if (cards[0].rank === cards[1].rank) {
+            score += 2;
+        }
+        
+        return score;
+    }
+
+    selectBestPlayCard(playableCards) {
+        // Enhanced strategy with lookahead thinking for the pegging phase
+        const currentCount = this.currentCount;
+        
+        if (playableCards.length === 1) {
+            return playableCards[0];
+        }
+        
+        // Score each playable card with lookahead evaluation
+        let bestCard = playableCards[0];
+        let bestScore = -Infinity;
+        
+        for (const card of playableCards) {
+            let score = 0;
+            const newCount = currentCount + card.value;
+            
+            // 1. IMMEDIATE SCORING (make 15 or 31)
+            if (newCount === 15) {
+                score += 20; // Worth 2 points
+            }
+            if (newCount === 31) {
+                score += 20; // Worth 2 points
+            }
+            
+            // 2. LOOKAHEAD: What cards do we have left and can we still play?
+            // This simulates "thinking ahead" - we want flexibility
+            const remainingHand = this.computer.hand.filter(c => c !== card);
+            const futurePlayable = remainingHand.filter(c => c.value + newCount <= 31).length;
+            
+            // Penalize plays that leave us with no follow-up (dead position)
+            if (futurePlayable === 0 && newCount < 31) {
+                score -= 10; // We'll be forced to say "Go"
+            } else {
+                score += futurePlayable * 2; // Reward flexibility
+            }
+            
+            // 3. AVOID SETTING UP OPPONENT
+            const opponentHand = this.player.hand.filter(c => !this.player.playedCards.includes(c));
+            
+            // Can opponent make 31?
+            if (opponentHand.some(c => newCount + c.value === 31)) {
+                score -= 15; // Very dangerous
+            }
+            
+            // Can opponent make 15?
+            if (opponentHand.some(c => newCount + c.value === 15)) {
+                score -= 8; // Dangerous
+            }
+            
+            // Does opponent have pair card?
+            if (opponentHand.some(c => c.rank === card.rank)) {
+                score -= 5; // Moderate danger
+            }
+            
+            // 4. PRESERVE FLEXIBILITY FOR FUTURE COUNT RESETS
+            // Don't burn high cards when count is still low
+            const percentOfMax = newCount / 31;
+            if (percentOfMax < 0.6 && card.value >= 10) {
+                score -= 3; // Wasteful to use high cards early
+            }
+            
+            // 5. SAFE PLAYS ARE PREFERRED WHEN NO SCORING
+            // If this card doesn't score, prefer plays that don't set up opponent
+            if (newCount !== 15 && newCount !== 31) {
+                // Prefer lower cards that leave less room for danger
+                score -= card.value / 10; // Small tiebreaker
+            }
+            
+            if (score > bestScore) {
+                bestScore = score;
+                bestCard = card;
+            }
+        }
+        
+        return bestCard;
     }
 }
 
@@ -996,7 +1128,8 @@ class GameUI {
             this.suppressIndividualAnnouncements = true;
             const messagesBefore = this.elements.statusMessages.children.length;
             
-            this.game.playCard(this.game.computer, playableCards[0]);
+            const cardToPlay = this.game.selectBestPlayCard(playableCards);
+            this.game.playCard(this.game.computer, cardToPlay);
             
             this.suppressIndividualAnnouncements = false;
             
