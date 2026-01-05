@@ -6,122 +6,137 @@ struct ContentView: View {
     
     var body: some View {
         NavigationView {
-            ScrollView {
-                VStack(spacing: 20) {
-                    // Scoreboard
-                    ScoreboardView(playerScore: game.player.score, computerScore: game.computer.score)
-                        .accessibilityElement(children: .contain)
-                    
-                    // Game Controls
+            VStack(spacing: 0) {
+                // Top section: Action buttons
+                HStack {
+                    Spacer()
                     gameControls
-                    
-                    // Cut Card
-                    if let cutCard = game.cutCard {
-                        VStack(spacing: 8) {
-                            Text("Cut Card")
-                                .font(.headline)
-                                .accessibilityAddTraits(.isHeader)
-                            
-                            CardView(card: cutCard, isSelected: false, isPlayable: false, action: {})
-                                .accessibilityLabel("Cut card: \(cutCard.name)")
-                        }
-                    }
-                    
-                    // Current Count
-                    if game.gameState == .play || game.gameState == .pause31 || game.gameState == .pauseGo {
-                        VStack(spacing: 8) {
-                            Text("Current Count")
-                                .font(.headline)
-                                .accessibilityAddTraits(.isHeader)
-                            
-                            Text("\(game.currentCount)")
-                                .font(.system(size: 48, weight: .bold))
-                                .foregroundColor(.primary)
-                                .padding()
-                                .background(
-                                    Circle()
-                                        .fill(Color.orange.opacity(0.2))
-                                        .frame(width: 100, height: 100)
-                                )
-                        }
-                        .accessibilityElement(children: .combine)
-                        .accessibilityLabel("Current count: \(game.currentCount)")
-                    }
-                    
-                    // Played Pile
-                    if !game.playedPile.isEmpty {
-                        VStack(spacing: 8) {
-                            Text("Played Cards")
-                                .font(.headline)
-                                .accessibilityAddTraits(.isHeader)
-                            
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 8) {
-                                    ForEach(game.playedPile) { played in
-                                        VStack {
-                                            CardView(card: played.card, isSelected: false, isPlayable: false, action: {})
-                                            Text(played.playerName)
-                                                .font(.caption2)
-                                                .foregroundColor(.secondary)
-                                        }
-                                        .accessibilityElement(children: .combine)
-                                        .accessibilityLabel("\(played.card.name) played by \(played.playerName)")
-                                    }
-                                }
-                                .padding(.horizontal)
-                            }
-                        }
-                    }
-                    
-                    // Computer Hand (face down)
-                    if !game.computer.hand.isEmpty {
-                        VStack(spacing: 8) {
-                            Text("Computer's Hand")
-                                .font(.headline)
-                                .accessibilityAddTraits(.isHeader)
-                            
-                            HStack(spacing: -30) {
-                                ForEach(0..<game.computer.hand.count, id: \.self) { _ in
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .fill(Color.blue)
-                                        .frame(width: 60, height: 85)
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 8)
-                                                .strokeBorder(Color.white, lineWidth: 1)
-                                        )
-                                }
-                            }
-                            .accessibilityLabel("Computer has \(game.computer.hand.count) card\(game.computer.hand.count == 1 ? "" : "s")")
-                        }
-                    }
-                    
-                    // Player Hand
-                    if !game.player.hand.isEmpty {
-                        VStack(spacing: 8) {
-                            Text("Your Hand")
-                                .font(.headline)
-                                .accessibilityAddTraits(.isHeader)
-                            
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 8) {
-                                    ForEach(game.player.hand) { card in
-                                        CardView(
-                                            card: card,
-                                            isSelected: game.selectedForDiscard.contains(card),
-                                            isPlayable: isCardPlayable(card),
-                                            action: { handleCardTap(card) }
-                                        )
-                                    }
-                                }
-                                .padding(.horizontal)
-                            }
-                        }
-                    }
-                    
-                    // Game Log
-                    GameLogView(messages: game.messages)
+                        .frame(maxWidth: 300)
                 }
                 .padding()
+                .background(Color(.systemBackground))
+                
+                Divider()
+                
+                // Middle section: Scrollable game board
+                ScrollView {
+                    VStack(spacing: 20) {
+                        // Scoreboard
+                        ScoreboardView(playerScore: game.player.score, computerScore: game.computer.score)
+                            .accessibilityElement(children: .contain)
+                        
+                        // Cut Card
+                        if let cutCard = game.cutCard {
+                            VStack(spacing: 8) {
+                                Text("Cut Card")
+                                    .font(.headline)
+                                    .accessibilityAddTraits(.isHeader)
+                                
+                                CardView(card: cutCard, isSelected: false, isPlayable: false, action: {})
+                                    .accessibilityLabel("Cut card: \(cutCard.name)")
+                            }
+                        }
+                        
+                        // Current Count
+                        if game.gameState == .play || game.gameState == .pause31 || game.gameState == .pauseGo {
+                            VStack(spacing: 8) {
+                                Text("Current Count")
+                                    .font(.headline)
+                                    .accessibilityAddTraits(.isHeader)
+                                
+                                Text("\(game.currentCount)")
+                                    .font(.system(size: 48, weight: .bold))
+                                    .foregroundColor(.primary)
+                                    .padding()
+                                    .background(
+                                        Circle()
+                                            .fill(Color.orange.opacity(0.2))
+                                            .frame(width: 100, height: 100)
+                                    )
+                            }
+                            .accessibilityElement(children: .combine)
+                            .accessibilityLabel("Current count: \(game.currentCount)")
+                        }
+                        
+                        // Played Pile
+                        if !game.playedPile.isEmpty {
+                            VStack(spacing: 8) {
+                                Text("Played Cards")
+                                    .font(.headline)
+                                    .accessibilityAddTraits(.isHeader)
+                                
+                                ScrollView(.horizontal, showsIndicators: false) {
+                                    HStack(spacing: 8) {
+                                        ForEach(game.playedPile) { played in
+                                            VStack {
+                                                CardView(card: played.card, isSelected: false, isPlayable: false, action: {})
+                                                Text(played.playerName)
+                                                    .font(.caption2)
+                                                    .foregroundColor(.secondary)
+                                            }
+                                            .accessibilityElement(children: .combine)
+                                            .accessibilityLabel("\(played.card.name) played by \(played.playerName)")
+                                        }
+                                    }
+                                    .padding(.horizontal)
+                                }
+                            }
+                        }
+                        
+                        // Computer Hand (face down)
+                        if !game.computer.hand.isEmpty {
+                            VStack(spacing: 8) {
+                                Text("Computer's Hand")
+                                    .font(.headline)
+                                    .accessibilityAddTraits(.isHeader)
+                                
+                                HStack(spacing: -30) {
+                                    ForEach(0..<game.computer.hand.count, id: \.self) { _ in
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .fill(Color.blue)
+                                            .frame(width: 60, height: 85)
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 8)
+                                                    .strokeBorder(Color.white, lineWidth: 1)
+                                            )
+                                    }
+                                }
+                                .accessibilityLabel("Computer has \(game.computer.hand.count) card\(game.computer.hand.count == 1 ? "" : "s")")
+                            }
+                        }
+                        
+                        // Game Log
+                        GameLogView(messages: game.messages)
+                    }
+                    .padding()
+                }
+                
+                Divider()
+                
+                // Bottom section: Player's hand
+                if !game.player.hand.isEmpty {
+                    VStack(spacing: 8) {
+                        Text("Your Hand")
+                            .font(.headline)
+                            .accessibilityAddTraits(.isHeader)
+                        
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 8) {
+                                ForEach(game.player.hand) { card in
+                                    CardView(
+                                        card: card,
+                                        isSelected: game.selectedForDiscard.contains(card),
+                                        isPlayable: isCardPlayable(card),
+                                        action: { handleCardTap(card) }
+                                    )
+                                }
+                            }
+                            .padding(.horizontal)
+                        }
+                    }
+                    .padding(.vertical, 8)
+                    .background(Color(.systemBackground))
+                }
             }
             .navigationTitle("Cribbage")
             .navigationBarTitleDisplayMode(.inline)
@@ -150,7 +165,7 @@ struct ContentView: View {
     
     @ViewBuilder
     private var gameControls: some View {
-        VStack(spacing: 12) {
+        VStack(alignment: .trailing, spacing: 12) {
             switch game.gameState {
             case .cutForDeal:
                 Button(action: {
@@ -160,8 +175,8 @@ struct ContentView: View {
                     Text("Cut for Deal")
                         .font(.headline)
                         .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 12)
                         .background(Color.blue)
                         .cornerRadius(10)
                 }
@@ -169,7 +184,7 @@ struct ContentView: View {
                 .accessibilityHint("Tap to determine who deals first")
                 
             case .discard:
-                VStack(spacing: 8) {
+                VStack(alignment: .trailing, spacing: 8) {
                     Text("Select 2 cards to discard")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
@@ -179,11 +194,11 @@ struct ContentView: View {
                         game.discardToCrib()
                         UIAccessibility.post(notification: .announcement, argument: "Cards discarded to crib")
                     }) {
-                        Text("Discard to Crib (\(game.selectedForDiscard.count)/2)")
+                        Text("Discard (\(game.selectedForDiscard.count)/2)")
                             .font(.headline)
                             .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding()
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 12)
                             .background(game.selectedForDiscard.count == 2 ? Color.green : Color.gray)
                             .cornerRadius(10)
                     }
@@ -194,7 +209,7 @@ struct ContentView: View {
                 }
                 
             case .play:
-                VStack(spacing: 8) {
+                VStack(alignment: .trailing, spacing: 8) {
                     if game.currentTurn === game.player {
                         Text("Your Turn")
                             .font(.headline)
@@ -208,8 +223,8 @@ struct ContentView: View {
                             Text("Say Go")
                                 .font(.headline)
                                 .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
-                                .padding()
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 12)
                                 .background(Color.orange)
                                 .cornerRadius(10)
                         }
@@ -231,8 +246,8 @@ struct ContentView: View {
                     Text("Continue")
                         .font(.headline)
                         .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 12)
                         .background(Color.purple)
                         .cornerRadius(10)
                 }
@@ -253,8 +268,8 @@ struct ContentView: View {
                     Text("New Game")
                         .font(.headline)
                         .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 12)
                         .background(Color.blue)
                         .cornerRadius(10)
                 }
@@ -262,7 +277,6 @@ struct ContentView: View {
                 .accessibilityHint("Tap to start a new game")
             }
         }
-        .padding(.horizontal)
     }
     
     private func isCardPlayable(_ card: Card) -> Bool {
