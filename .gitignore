@@ -16,3 +16,4 @@ obj/
 *.json
 !CribbageWPF/*.csproj
 !CribbageWPF/Properties/*.json
+.DS_Store
