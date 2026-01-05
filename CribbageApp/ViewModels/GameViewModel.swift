@@ -277,43 +277,128 @@ class GameViewModel: ObservableObject {
     }
     
     private func selectBestPlayCard(_ cards: [Card]) -> Card {
-        // Prioritize making 15 or 31
-        if let card = cards.first(where: { currentCount + $0.value == 15 || currentCount + $0.value == 31 }) {
-            return card
+        // Enhanced strategy with lookahead thinking for pegging phase
+        if cards.count == 1 {
+            return cards[0]
         }
         
-        // Prioritize making pairs
-        if let lastCard = playedPile.last?.card {
-            if let card = cards.first(where: { $0.rank == lastCard.rank }) {
-                return card
+        var bestCard = cards[0]
+        var bestScore = -999.0
+        
+        for card in cards {
+            var score = 0.0
+            let newCount = currentCount + card.value
+            
+            // 1. IMMEDIATE SCORING (make 15 or 31)
+            if newCount == 15 {
+                score += 20 // Worth 2 points
+            }
+            if newCount == 31 {
+                score += 20 // Worth 2 points
+            }
+            
+            // 2. LOOKAHEAD: Maintain flexibility
+            let remainingHand = computer.hand.filter { $0 != card && !computer.playedCards.contains($0) }
+            let futurePlayable = remainingHand.filter { $0.value + newCount <= 31 }.count
+            
+            // Penalize plays that leave us with no follow-up
+            if futurePlayable == 0 && newCount < 31 {
+                score -= 10 // We'll be forced to say "Go"
+            } else {
+                score += Double(futurePlayable) * 2 // Reward flexibility
+            }
+            
+            // 3. AVOID SETTING UP OPPONENT
+            let opponentHand = player.hand.filter { !player.playedCards.contains($0) }
+            
+            // Can opponent make 31?
+            if opponentHand.contains(where: { newCount + $0.value == 31 }) {
+                score -= 15 // Very dangerous
+            }
+            
+            // Can opponent make 15?
+            if opponentHand.contains(where: { newCount + $0.value == 15 }) {
+                score -= 8 // Dangerous
+            }
+            
+            // Does opponent have pair card?
+            if opponentHand.contains(where: { $0.rank == card.rank }) {
+                score -= 5 // Moderate danger
+            }
+            
+            // 4. PRESERVE HIGH CARDS FOR LATER
+            let percentOfMax = Double(newCount) / 31.0
+            if percentOfMax < 0.6 && card.value >= 10 {
+                score -= 3 // Wasteful to use high cards early
+            }
+            
+            // 5. PREFER LOWER CARDS WHEN NOT SCORING
+            if newCount != 15 && newCount != 31 {
+                score -= Double(card.value) / 10.0 // Small tiebreaker
+            }
+            
+            if score > bestScore {
+                bestScore = score
+                bestCard = card
             }
         }
         
-        // Play lowest card
-        return cards.min(by: { $0.value < $1.value }) ?? cards[0]
+        return bestCard
     }
     
     private func selectComputerDiscard() -> [Card] {
-        // Simple AI: keep highest scoring potential
+        // Evaluate all possible 2-card discard combinations
         var bestDiscards: [Card] = []
-        var bestScore = -1
+        var bestScore = Double.infinity
         
         let hand = computer.hand
         for i in 0..<hand.count {
             for j in (i+1)..<hand.count {
-                let discards = [hand[i], hand[j]]
-                let remaining = hand.filter { !discards.contains($0) }
+                let discardPair = [hand[i], hand[j]]
+                let remainingCards = hand.filter { !discardPair.contains($0) }
                 
-                // Estimate hand value
-                let score = estimateHandValue(remaining)
-                if score > bestScore {
-                    bestScore = score
-                    bestDiscards = discards
+                // Score the remaining hand (fifteens and pairs)
+                var handScore = 0.0
+                for card in remainingCards {
+                    for other in remainingCards {
+                        if card !== other && card.value + other.value == 15 {
+                            handScore += 2
+                        }
+                    }
+                }
+                
+                // Score the crib (fifteens and pairs in discarded cards)
+                let cribScore = estimateCribScore(discardPair)
+                
+                // If computer owns the crib, weight it (it's an advantage)
+                let totalScore = dealer === computer
+                    ? handScore + (cribScore * 1.5)
+                    : handScore - (cribScore * 1.5)
+                
+                if totalScore < bestScore {
+                    bestScore = totalScore
+                    bestDiscards = discardPair
                 }
             }
         }
         
         return bestDiscards.isEmpty ? Array(computer.hand.prefix(2)) : bestDiscards
+    }
+    
+    private func estimateCribScore(_ cards: [Card]) -> Double {
+        var score = 0.0
+        
+        // Check for fifteens
+        if cards[0].value + cards[1].value == 15 {
+            score += 2
+        }
+        
+        // Check for pairs
+        if cards[0].rank == cards[1].rank {
+            score += 2
+        }
+        
+        return score
     }
     
     private func estimateHandValue(_ cards: [Card]) -> Int {
@@ -573,7 +658,7 @@ class GameViewModel: ObservableObject {
         
         // Non-dealer counts first
         let nonDealer = dealer === player ? computer : player
-        let (ndPoints, ndDetails) = scoreHand(nonDealer.playedCards, cutCard: cutCard, isCrib: false)
+        let (ndPoints, ndDetails) = scoreHand(nonDealer.hand, cutCard: cutCard, isCrib: false)
         
         addMessage("\n\(nonDealer.name)'s hand:")
         for detail in ndDetails {
@@ -585,7 +670,7 @@ class GameViewModel: ObservableObject {
         if checkForWinner() { return }
         
         // Dealer counts
-        let (dPoints, dDetails) = scoreHand(dealer!.playedCards, cutCard: cutCard, isCrib: false)
+        let (dPoints, dDetails) = scoreHand(dealer!.hand, cutCard: cutCard, isCrib: false)
         
         addMessage("\n\(dealer!.name)'s hand:")
         for detail in dDetails {
