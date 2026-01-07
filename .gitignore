@@ -2,6 +2,8 @@ __pycache__/
 *.pyc
 /build
 /dist
+CribbageApp/build/
+*.xcarchive
 
 # Apache redirect file (for personal web server)
 .htaccess

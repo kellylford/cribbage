@@ -147,8 +147,10 @@ class GameViewModel: ObservableObject {
         guard currentTurn === player else { return false }
         guard !player.playedCards.contains(card) else { return false }
         guard currentCount + card.value <= 31 else { return false }
+        guard player.hand.contains(card) else { return false }
         
-        _ = player.playCard(card)
+        // Don't remove from hand - just track as played
+        player.playedCards.append(card)
         playedPile.append(PlayedCard(card: card, playerName: player.name, isComputer: player.isComputer))
         currentCount += card.value
         
@@ -201,11 +203,9 @@ class GameViewModel: ObservableObject {
             gameState = .pauseGo
             addMessage("Go scored. Tap Continue to resume play.")
             
-            // Player who said go first leads next
-            if let lastPlayed = playedPile.last {
-                let lastPlayer = lastPlayed.isComputer ? computer : player
-                currentTurn = lastPlayer === player ? computer : player
-            }
+            // The player who did NOT get the go point (opponent of last player) leads next
+            // This is the player who said "Go" first and couldn't play
+            currentTurn = current
         } else {
             // Opponent can play, switch to them
             currentTurn = opponent
@@ -245,8 +245,10 @@ class GameViewModel: ObservableObject {
         guard currentTurn === computer else { return }
         guard gameState == .play else { return }
         
+        // Get cards that haven't been played yet and can be played
         let playableCards = computer.hand.filter { card in
-            !computer.playedCards.contains(card) && currentCount + card.value <= 31
+            !computer.playedCards.contains(card) && 
+            currentCount + card.value <= 31
         }
         
         if playableCards.isEmpty {
@@ -346,6 +348,8 @@ class GameViewModel: ObservableObject {
         var bestScore = Double.infinity
         
         let hand = computer.hand
+        guard hand.count >= 2 else { return [] }
+        
         for i in 0..<hand.count {
             for j in (i+1)..<hand.count {
                 let discardPair = [hand[i], hand[j]]
@@ -652,6 +656,7 @@ class GameViewModel: ObservableObject {
         
         // Non-dealer counts first
         let nonDealer = dealer === player ? computer : player
+        // Hand still has all 4 cards since we didn't remove them during play
         let (ndPoints, ndDetails) = scoreHand(nonDealer.hand, cutCard: cutCard, isCrib: false)
         
         addMessage("\n\(nonDealer.name)'s hand:")
@@ -704,7 +709,8 @@ class GameViewModel: ObservableObject {
     
     private func canPlay(player: Player) -> Bool {
         return player.hand.contains { card in
-            !player.playedCards.contains(card) && currentCount + card.value <= 31
+            !player.playedCards.contains(card) && 
+            currentCount + card.value <= 31
         }
     }
     
@@ -727,17 +733,9 @@ class GameViewModel: ObservableObject {
         }
         
         // Move to counting
+        // Hands still contain original 4 cards since we didn't remove them during play
         player.clearPlayedCards()
         computer.clearPlayedCards()
-        
-        // Restore hands from played pile
-        for played in playedPile {
-            if played.isComputer {
-                computer.addCard(played.card)
-            } else {
-                player.addCard(played.card)
-            }
-        }
         
         countHands()
     }
