@@ -148,7 +148,7 @@ class GameViewModel: ObservableObject {
         guard !player.playedCards.contains(card) else { return false }
         guard currentCount + card.value <= 31 else { return false }
         
-        player.playCard(card)
+        _ = player.playCard(card)
         playedPile.append(PlayedCard(card: card, playerName: player.name, isComputer: player.isComputer))
         currentCount += card.value
         
@@ -171,12 +171,6 @@ class GameViewModel: ObservableObject {
             switchTurn()
             gameState = .pause31
             addMessage("Count of 31 reached. Tap Continue to resume play.")
-            return true
-        }
-        
-        // Check for end of play
-        if checkPlayComplete() {
-            endPlay()
             return true
         }
         
@@ -361,7 +355,7 @@ class GameViewModel: ObservableObject {
                 var handScore = 0.0
                 for card in remainingCards {
                     for other in remainingCards {
-                        if card !== other && card.value + other.value == 15 {
+                        if card != other && card.value + other.value == 15 {
                             handScore += 2
                         }
                     }
@@ -715,8 +709,9 @@ class GameViewModel: ObservableObject {
     }
     
     private func checkPlayComplete() -> Bool {
-        return player.hand.count == player.playedCards.count &&
-               computer.hand.count == computer.playedCards.count
+        // Each player should have played all 4 cards (6 dealt - 2 discarded to crib)
+        return player.playedCards.count == 4 &&
+               computer.playedCards.count == 4
     }
     
     private func endPlay() {

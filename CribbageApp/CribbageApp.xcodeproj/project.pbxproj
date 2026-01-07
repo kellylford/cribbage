@@ -17,6 +17,7 @@
 		8F8E07F0 /* ScoreboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F8E07EF /* ScoreboardView.swift */; };
 		8F8E07F2 /* GameLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F8E07F1 /* GameLogView.swift */; };
 		8F8E07F4 /* RulesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F8E07F3 /* RulesView.swift */; };
+		A05576B62F0D664000CE54D4 /* Assets 2.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A05576B52F0D664000CE54D4 /* Assets 2.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -31,6 +32,7 @@
 		8F8E07EF /* ScoreboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScoreboardView.swift; sourceTree = "<group>"; };
 		8F8E07F1 /* GameLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameLogView.swift; sourceTree = "<group>"; };
 		8F8E07F3 /* RulesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RulesView.swift; sourceTree = "<group>"; };
+		A05576B52F0D664000CE54D4 /* Assets 2.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Assets 2.xcassets"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -47,6 +49,7 @@
 		8F8E07D7 = {
 			isa = PBXGroup;
 			children = (
+				A05576B52F0D664000CE54D4 /* Assets 2.xcassets */,
 				8F8E07E1 /* CribbageApp.swift */,
 				8F8E07D9 /* Models */,
 				8F8E07DA /* ViewModels */,
@@ -146,6 +149,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A05576B62F0D664000CE54D4 /* Assets 2.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -228,7 +232,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "Cribbage";
+				INFOPLIST_KEY_CFBundleDisplayName = Cribbage;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.card-games";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -305,7 +309,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "Cribbage";
+				INFOPLIST_KEY_CFBundleDisplayName = Cribbage;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.card-games";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
