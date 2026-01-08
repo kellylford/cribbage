@@ -13,6 +13,10 @@ obj/
 *.exe
 *.pdb
 *.cache
-*.json
-!CribbageWPF/*.csproj
-!CribbageWPF/Properties/*.json
+*.user
+*.suo
+.vs/
+
+# Keep project files
+!*.csproj
+!*.sln

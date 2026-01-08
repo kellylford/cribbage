@@ -1,0 +1,125 @@
+<Window x:Class="Cribbage.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Cribbage" Height="900" Width="1200"
+        KeyDown="Window_KeyDown">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Title -->
+        <TextBlock Grid.Row="0" Text="Cribbage" FontSize="32" FontWeight="Bold" 
+                   HorizontalAlignment="Center" Margin="0,0,0,10"/>
+
+        <!-- Score Board -->
+        <GroupBox Grid.Row="1" Header="Score Board" Margin="0,0,0,10">
+            <StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="5">
+                    <TextBlock x:Name="PlayerScoreLabel" Text="PLAYER: 0" Width="150" FontWeight="Bold"/>
+                    <ProgressBar x:Name="PlayerScoreBar" Width="400" Height="25" Maximum="121" Value="0"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="5">
+                    <TextBlock x:Name="ComputerScoreLabel" Text="COMPUTER: 0" Width="150" FontWeight="Bold"/>
+                    <ProgressBar x:Name="ComputerScoreBar" Width="400" Height="25" Maximum="121" Value="0"/>
+                </StackPanel>
+            </StackPanel>
+        </GroupBox>
+
+        <!-- Game Log -->
+        <GroupBox Grid.Row="2" Header="Game Log" Margin="0,0,0,10">
+            <ListBox x:Name="GameLogListBox" 
+                     AutomationProperties.Name="Game Log"
+                     AutomationProperties.LiveSetting="Polite"
+                     ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+        </GroupBox>
+
+        <!-- Computer Hand -->
+        <GroupBox Grid.Row="3" Header="Computer Hand" Margin="0,0,0,10">
+            <StackPanel x:Name="ComputerHandPanel" 
+                        Orientation="Horizontal" 
+                        HorizontalAlignment="Center"
+                        AutomationProperties.Name="Computer Hand"
+                        Focusable="False"/>
+        </GroupBox>
+
+        <!-- Crib -->
+        <GroupBox Grid.Row="4" Header="The Crib" Margin="0,0,0,10">
+            <StackPanel x:Name="CribPanel" 
+                        Orientation="Horizontal" 
+                        HorizontalAlignment="Center"
+                        AutomationProperties.Name="The Crib"
+                        Focusable="False"/>
+        </GroupBox>
+
+        <!-- Played Cards -->
+        <GroupBox Grid.Row="5" x:Name="PlayedGroupBox" Header="Played Cards" Margin="0,0,0,10">
+            <StackPanel x:Name="PlayedPanel" 
+                        Orientation="Horizontal" 
+                        HorizontalAlignment="Center"
+                        AutomationProperties.Name="Played Cards"
+                        Focusable="False"/>
+        </GroupBox>
+
+        <!-- Player Hand -->
+        <GroupBox Grid.Row="6" Header="Your Hand" Margin="0,0,0,10">
+            <ListBox x:Name="PlayerHandPanel" 
+                     SelectionMode="Single"
+                     HorizontalAlignment="Center"
+                     AutomationProperties.Name="Your Hand"
+                     KeyDown="PlayerHandPanel_KeyDown"
+                     SelectionChanged="PlayerHandPanel_SelectionChanged"
+                     Background="Transparent"
+                     BorderThickness="0"
+                     Padding="0">
+                <ListBox.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal"/>
+                    </ItemsPanelTemplate>
+                </ListBox.ItemsPanel>
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="Padding" Value="0"/>
+                        <Setter Property="Margin" Value="0"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="ListBoxItem">
+                                    <ContentPresenter/>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </ListBox.ItemContainerStyle>
+            </ListBox>
+        </GroupBox>
+
+        <!-- Controls -->
+        <StackPanel Grid.Row="7" Orientation="Horizontal" HorizontalAlignment="Center">
+            <Button x:Name="CutButton" Content="_Cut for Deal" Click="CutButton_Click"
+                    AutomationProperties.Name="Cut for Deal" AutomationProperties.AccessKey="C"/>
+            <Button x:Name="GoButton" Content="_Go" Click="GoButton_Click"
+                    AutomationProperties.Name="Go" AutomationProperties.AccessKey="G"/>
+            <Button x:Name="ContinueButton" Content="_Continue" Click="ContinueButton_Click"
+                    AutomationProperties.Name="Continue" AutomationProperties.AccessKey="N"/>
+            <Button x:Name="NewGameButton" Content="_New Game" Click="NewGameButton_Click" 
+                    Margin="20,5,5,5"
+                    AutomationProperties.Name="New Game" AutomationProperties.AccessKey="N"/>
+        </StackPanel>
+
+        <!-- Hidden live region for screen reader announcements -->
+        <TextBlock x:Name="LiveRegion" 
+                   Grid.Row="0"
+                   Visibility="Collapsed"
+                   AutomationProperties.LiveSetting="Assertive"/>
+    </Grid>
+</Window>
